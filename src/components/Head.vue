@@ -2,10 +2,6 @@
   <Header class="header fs-container" :class="isMobile ? 'mobile' : ''">
     <NuxtLink to="/"><img class="logo" src="@/assets/icons/logo-text.svg" /></NuxtLink>
 
-    <div v-if="isMobile ? (navOpened ? true : false) : true" :class="isMobile ? 'mobile-nav' : ''">
-      <Nav @onSelect="() => (navOpened = false)" />
-    </div>
-
     <div class="fs-container">
       <Wallet />
       <div

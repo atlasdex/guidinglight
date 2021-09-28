@@ -1,1081 +1,1589 @@
 <template>
-  <div class="page-container">
-    <nav class="home-navbar">
-      <NuxtLink to="/swap/">
-        <img src="../assets/icons/logo-text.svg" width="148" height="40" />
-      </NuxtLink>
-
-      <NuxtLink to="/swap/">
-        <div class="card button-like forsted-glass teal"><span class="font">Launch app</span></div>
-      </NuxtLink>
-    </nav>
-
-    <section class="section-app-face children-center grid-cover-container">
-      <div class="image-1" />
-      <div class="grid-cover-content children-center">
-        <div class="title">
-          An avenue for <br />
-          the evolution of <span class="defi-text">DeFi</span>
-        </div>
-        <div class="subtitle">
-          Light-speed <b>swaps</b>. Next-level <b>liquidity</b>. {{ '\n' }} Friction-less <b>yield</b>.
-        </div>
-
-        <div class="row-box-1">
-          <NuxtLink to="/swap/">
-            <div class="card button-like card-1">
-              <span class="font">Launch app</span><img class="icon" src="../assets/icons/button-icon-right.svg" />
-            </div>
-          </NuxtLink>
-
-          <a href="https://raydium.gitbook.io/raydium/" rel="nofollow noopener noreferrer" target="_blank">
-            <div class="card button-like card-2 forsted-glass teal">
-              <span class="font">Read docs</span><img class="icon" src="../assets/icons/gitbook.svg" />
-            </div>
-          </a>
-        </div>
-
-        <div class="row-box-2">
-          <div class="card forsted-glass smoke">
-            <div class="card-title">TOTAL VALUE LOCKED</div>
-            <div class="value">
-              <span class="value-sign">$</span>
-              <span class="value-number">
-                {{
-                  Math.round(tvl)
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                }}
-              </span>
-            </div>
-          </div>
-
-          <div class="card forsted-glass smoke">
-            <div class="card-title">TOTAL TRADING VOLUME</div>
-            <div class="value">
-              <span class="value-sign">$</span>
-              <span class="value-number">
-                {{
-                  Math.round(totalvolume)
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <img src="../assets/background/index_slogan_build_on.svg" class="solana-logo" />
-      </div>
-    </section>
-
-    <section class="section-features -1 children-center">
-      <div class="image-2" />
-      <div class="content">
-        <div class="title-text">
-          <div class="line" />
-          <div class="text">A suite of features powering the evolution of DeFi on Solana</div>
-        </div>
-
-        <div class="boards">
-          <div class="card children-center forsted-glass lightsmoke">
-            <div class="card icon-like forsted-glass teal">
-              <img class="icon" src="../assets/icons/trade.svg" />
-            </div>
-            <div class="feature-title">Trade</div>
-            <div class="feature-description">Swap or Trade quickly and cheaply.</div>
-            <NuxtLink to="/swap/"><div class="card button-like forsted-glass teal">Enter Exchange</div></NuxtLink>
-          </div>
-
-          <div class="card children-center forsted-glass lightsmoke">
-            <div class="card icon-like forsted-glass teal">
-              <img class="icon" src="../assets/icons/yield.svg" />
-            </div>
-            <div class="feature-title">Yield</div>
-            <div class="feature-description">Earn yield through fees and yield farms.</div>
-            <NuxtLink to="/farms/">
-              <div class="card button-like forsted-glass teal">Enter Farms</div>
-            </NuxtLink>
-          </div>
-
-          <div class="card children-center forsted-glass lightsmoke">
-            <div class="card icon-like forsted-glass teal">
-              <img class="icon" src="../assets/icons/pool.svg" />
-            </div>
-            <div class="feature-title">Pool</div>
-            <div class="feature-description">Provide liquidity for any SPL token.</div>
-            <NuxtLink to="/liquidity/">
-              <div class="card button-like forsted-glass teal">Add Liquidity</div>
-            </NuxtLink>
-          </div>
-
-          <div class="card children-center forsted-glass lightsmoke">
-            <div class="card icon-like forsted-glass teal">
-              <img class="icon" src="../assets/icons/acceleRaytor.svg" />
-            </div>
-            <div class="feature-title">AcceleRaytor</div>
-            <div class="feature-description">Launchpad for new Solana projects.</div>
-            <NuxtLink to="/acceleraytor/">
-              <div class="card button-like forsted-glass teal">View Projects</div>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section-features -2 children-center grid-cover-container">
-      <div class="image-3" />
-      <div class="content">
-        <div class="title-text">
-          <div class="line" />
-          <div class="text">Raydium provides Ecosystem-Wide Liquidity for users and projects</div>
-        </div>
-
-        <div class="boards">
-          <div class="card children-center forsted-glass buriedlightsmoke">
-            <div class="card icon-like forsted-glass teal">
-              <img class="icon" src="../assets/icons/order-book-AMM.svg" />
-            </div>
-            <div class="feature-title">Order Book AMM</div>
-            <div class="feature-description">
-              Raydium's AMM interacts with Serum's central limit order book, meaning that pools have access to all order
-              flow and liquidity on Serum, and vice versa.
-            </div>
-          </div>
-
-          <div class="card children-center forsted-glass buriedlightsmoke">
-            <div class="card icon-like forsted-glass teal">
-              <img class="icon" src="../assets/icons/best-price-swaps.svg" />
-            </div>
-            <div class="feature-title">Best Price Swaps</div>
-            <div class="feature-description">
-              Raydium determines whether swapping within a liquidity pool or through the Serum order book will provide
-              the best price for the user, and executes accordingly.
-            </div>
-          </div>
-
-          <div class="card children-center forsted-glass buriedlightsmoke">
-            <div class="card icon-like forsted-glass teal">
-              <img class="icon" src="../assets/icons/high-liquidity-launches.svg" />
-            </div>
-            <div class="feature-title">High-Liquidity Launches</div>
-            <div class="feature-description">
-              AcceleRaytor offers projects a straightforward 3 step process to raise funds, launch an IDO, and bootstrap
-              liquidity on Raydium and Serum.
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section-partners children-center">
-      <div class="title-text">
-        <div class="line" />
-        <div class="text">Partners</div>
-      </div>
-
-      <div class="boards">
-        <img src="../assets/icons/solana-text-logo.svg" />
-        <img src="../assets/icons/serum-text-logo.svg" />
-        <!-- <img src="../assets/icons/sushi-text-logo.svg" /> Temporary-->
-      </div>
-    </section>
-
-    <footer class="page-footer">
-      <div class="links-group">
-        <div class="group about">
-          <div class="title-text">
-            <div class="text">ABOUT</div>
-            <div class="line" />
-          </div>
-          <ul class="links">
-            <li>
-              <a
-                class="link"
-                href="https://raydium.gitbook.io/raydium/"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-                >Documentation</a
-              >
-            </li>
-          </ul>
-        </div>
-
-        <div class="group protocol">
-          <div class="title-text">
-            <div class="text">PROTOCOL</div>
-            <div class="line" />
-          </div>
-          <ul class="links">
-            <li>
-              <a
-                class="link"
-                href="https://forms.gle/Fjq4MiRA2qWbPyt29"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-                >Apply for DropZone</a
-              >
-            </li>
-            <li>
-              <a
-                class="link"
-                href="https://docs.google.com/forms/d/1Mk-x0OcI1tCZzL0Lj_WY8d02dMXsc-Z2AG3AaO6W_Rc/edit#responses"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-                >Apply for Fusion Pool</a
-              >
-            </li>
-            <li>
-              <a
-                class="link"
-                href="https://docs.google.com/forms/d/1Mk-x0OcI1tCZzL0Lj_WY8d02dMXsc-Z2AG3AaO6W_Rc/edit#responses"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-                >Apply for AcceleRaytor</a
-              >
-            </li>
-            <li>
-              <a
-                class="link"
-                href="https://raydium.gitbook.io/raydium/permissionless/creating-a-pool"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-                >Permissionless Pool</a
-              >
-            </li>
-          </ul>
-        </div>
-
-        <div class="group support">
-          <div class="title-text">
-            <div class="text">SUPPORT</div>
-            <div class="line" />
-          </div>
-          <ul class="links">
-            <li>
-              <a
-                class="link"
-                href="https://raydium.gitbook.io/raydium/trading-on-serum/spl-wallets"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-                >Getting Started on Raydium</a
-              >
-            </li>
-            <li>
-              <a
-                class="link"
-                href="https://raydium.gitbook.io/raydium/trading-on-serum/faq"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-                >FAQ</a
-              >
-            </li>
-          </ul>
-        </div>
-
-        <div class="group community">
-          <div class="title-text">
-            <div class="text">COMMUNITY</div>
-            <div class="line" />
-          </div>
-          <ul class="links">
-            <li>
-              <a
-                href="https://twitter.com/RaydiumProtocol"
-                class="link"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-              >
-                <div class="card icon-like forsted-glass teal">
-                  <img src="../assets/icons/home-icon-twitter.svg" width="20" height="20" />
+  <div class="swap container">
+    <div class="page-head fs-container">
+      <span class="title">Swap</span>
+      <div class="buttons">
+        <Tooltip placement="bottomRight">
+          <template slot="title">
+            <span>
+              Displayed data will auto-refresh after
+              {{ autoRefreshTime - countdown }} seconds. Click this circle to update manually.
+            </span>
+          </template>
+          <Progress
+            type="circle"
+            :width="20"
+            :stroke-width="10"
+            :percent="(100 / autoRefreshTime) * countdown"
+            :show-info="false"
+            :class="marketAddress && loading ? 'disabled' : ''"
+            @click="
+              () => {
+                getOrderBooks()
+                $accessor.wallet.getTokenAccounts()
+              }
+            "
+          />
+        </Tooltip>
+        <Tooltip placement="bottomRight">
+          <template slot="title">
+            <p>Program Addresses (DO NOT DEPOSIT)</p>
+            <div class="swap-info">
+              <div v-if="fromCoin" class="info">
+                <div class="symbol">{{ fromCoin.symbol }}</div>
+                <div class="address">
+                  {{ fromCoin.mintAddress.substr(0, 14) }}
+                  ...
+                  {{ fromCoin.mintAddress.substr(fromCoin.mintAddress.length - 14, 14) }}
                 </div>
-                <div class="media-name">Twitter</div>
-              </a>
-            </li>
-            <li>
-              <a href="https://raydium.medium.com/" class="link" rel="nofollow noopener noreferrer" target="_blank">
-                <div class="card icon-like forsted-glass teal">
-                  <img src="../assets/icons/home-icon-medium.svg" width="18" height="18" />
+                <div class="action">
+                  <Icon type="copy" @click="$accessor.copy(fromCoin.mintAddress)" />
+                  <a :href="`${url.explorer}/token/${fromCoin.mintAddress}`" target="_blank">
+                    <Icon type="link" />
+                  </a>
                 </div>
-                <div class="media-name">Medium</div>
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://discord.com/invite/6EvFwvCfpx"
-                class="link"
-                rel="nofollow noopener noreferrer"
-                target="_blank"
-              >
-                <div class="card icon-like forsted-glass teal">
-                  <img src="../assets/icons/home-icon-discord.svg" width="20" height="20" />
+              </div>
+              <div v-if="toCoin" class="info">
+                <div class="symbol">{{ toCoin.symbol }}</div>
+                <div class="address">
+                  {{ toCoin.mintAddress.substr(0, 14) }}
+                  ...
+                  {{ toCoin.mintAddress.substr(toCoin.mintAddress.length - 14, 14) }}
                 </div>
-                <div class="media-name">Discord</div>
-              </a>
-            </li>
-            <li>
-              <a href="https://weibo.com/u/7573315825" class="link" rel="nofollow noopener noreferrer" target="_blank">
-                <div class="card icon-like forsted-glass teal">
-                  <img src="../assets/icons/home-icon-weibo.svg" width="20" height="20" />
+                <div class="action">
+                  <Icon type="copy" @click="$accessor.copy(toCoin.mintAddress)" />
+                  <a :href="`${url.explorer}/token/${toCoin.mintAddress}`" target="_blank">
+                    <Icon type="link" />
+                  </a>
                 </div>
-                <div class="media-name">Weibo</div>
-              </a>
-            </li>
-            <li style="width: max-content">
-              <Popover v-model="isPopupOpen" trigger="click" placement="right">
-                <template slot="content">
-                  <ul class="pop-links">
-                    <a
-                      class="link"
-                      href="https://t.me/raydiumprotocol"
-                      rel="nofollow noopener noreferrer"
-                      target="_blank"
-                      >Telegram (EN)</a
-                    >
-                    <a class="link" href="https://t.me/RaydiumChina" rel="nofollow noopener noreferrer" target="_blank"
-                      >Telegram (CN)</a
-                    >
-                    <a class="link" href="https://t.me/raydiumkorea" rel="nofollow noopener noreferrer" target="_blank"
-                      >Telegram (KR)</a
-                    >
-                    <a class="link" href="https://t.me/raydiumjapan" rel="nofollow noopener noreferrer" target="_blank"
-                      >Telegram (JP)</a
-                    >
-                    <a
-                      class="link"
-                      href="https://t.me/RaydiumSpanish"
-                      rel="nofollow noopener noreferrer"
-                      target="_blank"
-                      >Telegram (ES)</a
-                    >
-                    <a class="link" href="https://t.me/RaydiumTurkey" rel="nofollow noopener noreferrer" target="_blank"
-                      >Telegram (TR)</a
-                    >
-                    <a
-                      class="link"
-                      href="https://t.me/RaydiumVietnam"
-                      rel="nofollow noopener noreferrer"
-                      target="_blank"
-                      >Telegram (VN)</a
-                    >
-                    <a
-                      class="link"
-                      href="https://t.me/RaydiumRussian"
-                      rel="nofollow noopener noreferrer"
-                      target="_blank"
-                      >Telegram (RU)</a
-                    >
-                  </ul>
+              </div>
+              <div v-if="marketAddress" class="info">
+                <div class="symbol">Market</div>
+                <div class="address">
+                  {{ marketAddress.substr(0, 14) }}
+                  ...
+                  {{ marketAddress.substr(marketAddress.length - 14, 14) }}
+                </div>
+                <div class="action">
+                  <Icon type="copy" @click="$accessor.copy(marketAddress)" />
+                  <a v-if="!officialPool" :href="`${url.explorer}/account/${marketAddress}`" target="_blank">
+                    <Icon type="link" />
+                  </a>
+                  <a v-else :href="`${url.trade}/${marketAddress}`" target="_blank">
+                    <Icon type="link" />
+                  </a>
+                </div>
+              </div>
+              <div v-if="ammId" class="info">
+                <div class="symbol">AMM ID</div>
+                <div class="address">
+                  {{ ammId ? ammId.substr(0, 14) : '' }}
+                  ...
+                  {{ ammId ? ammId.substr(ammId.length - 14, 14) : '' }}
+                </div>
+                <div class="action">
+                  <Icon type="copy" @click="$accessor.copy(ammId)" />
+                  <a :href="`${url.explorer}/account/${ammId}`" target="_blank">
+                    <Icon type="link" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </template>
+          <Icon type="info-circle" />
+        </Tooltip>
+        <Icon type="setting" @click="$accessor.setting.open" />
+      </div>
+    </div>
+
+    <CoinSelect v-if="coinSelectShow" @onClose="() => (coinSelectShow = false)" @onSelect="onCoinSelect" />
+    <AmmIdSelect
+      :show="ammIdSelectShow"
+      :liquidity-list="ammIdSelectList"
+      :user-close="true"
+      @onClose="() => ((ammIdSelectShow = false), (ammIdSelectOld = true))"
+      @onSelect="onAmmIdSelect"
+    />
+
+    <UnofficialPoolConfirmUser
+      v-if="userCheckUnofficialShow"
+      @onClose="() => (userCheckUnofficialShow = false)"
+      @onSelect="onUserCheckUnofficialSelect"
+    />
+
+    <InputAmmIdOrMarket
+      v-if="ammIdOrMarketSearchShow"
+      @onClose="() => (ammIdOrMarketSearchShow = false)"
+      @onInput="onAmmIdOrMarketInput"
+    ></InputAmmIdOrMarket>
+
+    <div class="card">
+      <div class="card-body">
+        <CoinInput
+          v-model="fromCoinAmount"
+          label="From"
+          :balance-offset="fromCoin && fromCoin.symbol === 'SOL' ? -0.05 : 0"
+          :mint-address="fromCoin ? fromCoin.mintAddress : ''"
+          :coin-name="fromCoin ? fromCoin.symbol : ''"
+          :balance="fromCoin ? fromCoin.balance : null"
+          :show-half="true"
+          @onInput="(amount) => (fromCoinAmount = amount)"
+          @onFocus="
+            () => {
+              fixedFromCoin = true
+            }
+          "
+          @onMax="
+            () => {
+              fixedFromCoin = true
+              fromCoinAmount = fromCoin && fromCoin.balance ? fromCoin.balance.fixed() : '0'
+            }
+          "
+          @onSelect="openFromCoinSelect"
+        />
+
+        <div class="change-side fc-container">
+          <div class="fc-container" @click="changeCoinPosition">
+            <Icon type="swap" :rotate="90" />
+          </div>
+        </div>
+
+        <CoinInput
+          v-model="toCoinAmount"
+          label="To (Estimate)"
+          :mint-address="toCoin ? toCoin.mintAddress : ''"
+          :coin-name="toCoin ? toCoin.symbol : ''"
+          :balance="toCoin ? toCoin.balance : null"
+          :show-max="false"
+          :disabled="true"
+          @onInput="(amount) => (toCoinAmount = amount)"
+          @onFocus="
+            () => {
+              fixedFromCoin = false
+            }
+          "
+          @onMax="
+            () => {
+              fixedFromCoin = false
+              toCoinAmount = toCoin.balance.fixed()
+            }
+          "
+          @onSelect="openToCoinSelect"
+        />
+        <div class="price-info" style="padding: 0 12px">
+          <div v-if="fromCoin && toCoin && isWrap && fromCoinAmount" class="price-base fc-container">
+            <span>
+              1 {{ fromCoin.symbol }} = 1
+              {{ toCoin.symbol }}
+            </span>
+          </div>
+          <div v-else-if="fromCoin && toCoin && lpMintAddress && fromCoinAmount" class="price-base fc-container">
+            <span>
+              1 {{ hasPriceSwapped ? toCoin.symbol : fromCoin.symbol }} ≈
+              {{ hasPriceSwapped ? (1 / outToPirceValue).toFixed(6) : outToPirceValue }}
+              {{ hasPriceSwapped ? fromCoin.symbol : toCoin.symbol }}
+              <Icon type="swap" @click="() => (hasPriceSwapped = !hasPriceSwapped)" />
+            </span>
+          </div>
+          <div
+            v-else-if="fromCoin && toCoin && marketAddress && market && asks && bids && fromCoinAmount"
+            class="price-base fc-container"
+          >
+            <span>
+              1 {{ hasPriceSwapped ? toCoin.symbol : fromCoin.symbol }} ≈
+              {{ hasPriceSwapped ? (1 / outToPirceValue).toFixed(6) : outToPirceValue }}
+              {{ hasPriceSwapped ? fromCoin.symbol : toCoin.symbol }}
+              <Icon type="swap" @click="() => (hasPriceSwapped = !hasPriceSwapped)" />
+            </span>
+          </div>
+          <div class="fs-container">
+            <span class="name">
+              Slippage Tolerance
+              <Tooltip placement="right">
+                <template slot="title">
+                  The maximum difference between your estimated price and execution price.
                 </template>
+                <Icon type="question-circle" /> </Tooltip
+            ></span>
+            <span> {{ $accessor.setting.slippage }}% </span>
+          </div>
+          <div v-if="endpoint" class="fs-container">
+            <span class="name">
+              Swapping Through
+              <Tooltip placement="right">
+                <template slot="title"> This venue gave the best price for your trade </template>
+                <Icon type="question-circle" /> </Tooltip
+            ></span>
+            <span style="text-transform: capitalize"> {{ endpoint }} </span>
+          </div>
+          <div v-if="fromCoin && toCoin && fromCoinAmount && toCoinWithSlippage" class="fs-container">
+            <span class="name">
+              Minimum Received
+              <Tooltip placement="right">
+                <template slot="title"> The least amount of tokens you will recieve on this trade </template>
+                <Icon type="question-circle" /> </Tooltip
+            ></span>
+            <span> {{ toCoinWithSlippage }} {{ toCoin.symbol }} </span>
+          </div>
+          <div
+            v-if="endpoint"
+            :class="`fs-container price-impact ${
+              priceImpact > 10 ? 'error-style' : priceImpact > 5 ? 'warning-style' : ''
+            }`"
+          >
+            <span class="name">
+              Price Impact {{ priceImpact > 5 ? 'Warning' : '' }}
+              <Tooltip placement="right">
+                <template slot="title">
+                  The difference between the market price and estimated price due to trade size
+                </template>
+                <Icon type="question-circle" style="cursor: pointer" /> </Tooltip
+            ></span>
+            <span :style="`color: ${priceImpact <= 5 ? '#31d0aa' : ''}`"> {{ priceImpact.toFixed(2) }}% </span>
+          </div>
+        </div>
 
-                <div class="link">
-                  <div class="card icon-like forsted-glass teal">
-                    <img src="../assets/icons/home-icon-telegram.svg" width="24" height="24" />
-                  </div>
-                  <div class="media-name" style="cursor: pointer">Telegram</div>
-                  <Icon
-                    type="down"
-                    style="transform: translateY(2px) scaleX(0.7) scaleY(0.6); margin: -12px; cursor: pointer"
-                  />
-                </div>
-              </Popover>
-            </li>
-          </ul>
+        <div v-if="officialPool === false">
+          <div style="margin: 10px">
+            <div>AMM ID:</div>
+            <div>
+              {{ ammId ? ammId.substr(0, 14) : '' }}
+              ...
+              {{ ammId ? ammId.substr(ammId.length - 14, 14) : '' }}
+            </div>
+          </div>
+        </div>
+        <Button v-if="!wallet.connected" size="large" ghost @click="$accessor.wallet.openModal">
+          Connect Wallet
+        </Button>
+
+        <Button
+          v-else-if="!(officialPool || (!officialPool && userCheckUnofficial))"
+          size="large"
+          ghost
+          @click="
+            () => {
+              setTimeout(() => {
+                userCheckUnofficialShow = true
+              }, 1)
+            }
+          "
+        >
+          Confirm Risk Warning
+        </Button>
+        <Button
+          v-else
+          size="large"
+          ghost
+          :disabled="
+            !fromCoin ||
+            !fromCoinAmount ||
+            !toCoin ||
+            (!marketAddress && !lpMintAddress && !isWrap) ||
+            !initialized ||
+            loading ||
+            gt(
+              fromCoinAmount,
+              fromCoin && fromCoin.balance
+                ? fromCoin.symbol === 'SOL'
+                  ? fromCoin.balance.toEther().minus(0.05).toFixed(fromCoin.balance.decimals)
+                  : fromCoin.balance.fixed()
+                : '0'
+            ) || // not enough SOL to swap SOL to another coin
+            (get(liquidity.infos, `${lpMintAddress}.status`) &&
+              get(liquidity.infos, `${lpMintAddress}.status`) !== 1) ||
+            swaping ||
+            (fromCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, fromCoinAmount)) ||
+            (toCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, toCoinAmount))
+          "
+          :loading="swaping"
+          style="width: 100%"
+          :class="`swap-btn ${priceImpact > 10 ? 'error-style' : priceImpact > 5 ? 'warning-style' : ''}`"
+          @click="
+            () => {
+              if (priceImpact > 10) {
+                confirmModalIsOpen = true
+              } else {
+                placeOrder()
+              }
+            }
+          "
+        >
+          <template v-if="!fromCoin || !toCoin"> Select a token </template>
+          <template v-else-if="(!marketAddress && !lpMintAddress && !isWrap) || !initialized">
+            Pool Not Found
+          </template>
+          <template v-else-if="!fromCoinAmount"> Enter an amount </template>
+          <template v-else-if="loading"> Updating price information </template>
+          <template
+            v-else-if="
+              gt(
+                fromCoinAmount,
+                fromCoin && fromCoin.balance
+                  ? fromCoin.symbol === 'SOL'
+                    ? fromCoin.balance.toEther().minus(0.05).toFixed(fromCoin.balance.decimals)
+                    : fromCoin.balance.fixed()
+                  : '0'
+              )
+            "
+          >
+            Insufficient {{ fromCoin.symbol }} balance
+          </template>
+          <template
+            v-else-if="
+              get(liquidity.infos, `${lpMintAddress}.status`) && get(liquidity.infos, `${lpMintAddress}.status`) !== 1
+            "
+          >
+            Pool coming soon
+          </template>
+          <template v-else-if="fromCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, fromCoinAmount)">
+            xCOPE amount must greater than 5
+          </template>
+          <template v-else-if="toCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, toCoinAmount)">
+            xCOPE amount must greater than 5
+          </template>
+          <template v-else>{{ isWrap ? 'Unwrap' : priceImpact > 5 ? 'Swap Anyway' : 'Swap' }}</template>
+        </Button>
+        <div v-if="solBalance && +solBalance.balance.fixed() - 0.05 <= 0" class="not-enough-sol-alert">
+          <span class="caution-text">Caution: Your SOL balance is low</span>
+
+          <Tooltip placement="bottomLeft">
+            <template slot="title">
+              SOL is needed for Solana network fees. A minimum balance of 0.05 SOL is recommended to avoid failed
+              transactions.
+            </template>
+            <Icon type="question-circle" />
+          </Tooltip>
         </div>
       </div>
+    </div>
 
-      <img class="foot-logo" src="../assets/icons/logo-text.svg" width="148" height="40" />
-    </footer>
+    <div
+      v-if="(!baseSymbol && !quoteSymbol && isFetchingUnsettled) || baseUnsettledAmount || quoteUnsettledAmount"
+      class="card extra"
+    >
+      <div class="settle card-body">
+        <div v-if="!baseSymbol && !quoteSymbol && isFetchingUnsettled" class="fetching-unsettled">
+          <Spin :spinning="true">
+            <Icon slot="indicator" type="loading" style="font-size: 24px" spin />
+          </Spin>
+          <span>Fetching info from market. Please wait.</span>
+        </div>
+
+        <table
+          v-else-if="(baseSymbol && quoteSymbol && !isFetchingUnsettled && baseUnsettledAmount) || quoteUnsettledAmount"
+          class="settel-panel"
+        >
+          <thead>
+            <tr>
+              <th colspan="2">You have unsettled balances:</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="baseSymbol && baseUnsettledAmount" class="row">
+              <td>{{ baseSymbol }}</td>
+              <td>{{ baseUnsettledAmount }}</td>
+              <td class="align-right" rowspan="2">
+                <Button class="btn" :loading="isSettlingBase" ghost @click="settleFunds('base')">Settle</Button>
+              </td>
+            </tr>
+
+            <tr v-if="quoteSymbol && quoteUnsettledAmount" class="row">
+              <td>{{ quoteSymbol }}</td>
+              <td>{{ quoteUnsettledAmount }}</td>
+              <td v-if="!baseUnsettledAmount" class="align-right" rowspan="2">
+                <Button class="btn" :loading="isSettlingBase" ghost @click="settleFunds('base')">Settle</Button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <Modal
+      class="swap-confirm-modal"
+      title="Warning"
+      :visible="confirmModalIsOpen === true"
+      :footer="null"
+      @cancel="confirmModalIsOpen = false"
+      @ok="
+        () => {
+          confirmModalIsOpen = false
+          placeOrder()
+        }
+      "
+    >
+      <div class="title">Price Impact Warning</div>
+      <div class="description">
+        Your swap is large relative to liquidity in the pool. Price impact is
+        <span class="highlight">higher than 10%</span>. If you're unsure what to do, read about price impact
+        <a
+          href="https://raydium.gitbook.io/raydium/trading-on-serum/faq#what-is-price-impact"
+          rel="nofollow noopener noreferrer"
+          target="_blank"
+        >
+          here</a
+        >.
+      </div>
+      <div class="description-secondary">Are you sure you want to confirm this swap?</div>
+      <div class="btn-group">
+        <Button class="cancel-btn" ghost size="large" @click="confirmModalIsOpen = false"> Cancel </Button>
+        <Button
+          class="swap-btn"
+          type="text"
+          @click="
+            () => {
+              confirmModalIsOpen = false
+              placeOrder()
+            }
+          "
+        >
+          Swap anyway
+        </Button>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script lang="ts">
-import { Vue, Component } from 'nuxt-property-decorator'
-import { Icon, Popover } from 'ant-design-vue'
+import Vue from 'vue'
+import { mapState } from 'vuex'
+import { Icon, Tooltip, Button, Progress, Spin, Modal } from 'ant-design-vue'
 
-@Component({
+import { cloneDeep, get } from 'lodash-es'
+import { Market, Orderbook } from '@project-serum/serum/lib/market.js'
+
+import { PublicKey } from '@solana/web3.js'
+import { getTokenBySymbol, TokenInfo, NATIVE_SOL, TOKENS } from '@/utils/tokens'
+import { inputRegex, escapeRegExp } from '@/utils/regex'
+import { getMultipleAccounts, commitment } from '@/utils/web3'
+import { SERUM_PROGRAM_ID_V3 } from '@/utils/ids'
+import { getOutAmount, getSwapOutAmount, place, swap, wrap, checkUnsettledInfo, settleFund } from '@/utils/swap'
+import { TokenAmount, gt } from '@/utils/safe-math'
+import { getUnixTs } from '@/utils'
+import { canWrap, getLiquidityInfoSimilar } from '@/utils/liquidity'
+import {
+  getLpListByTokenMintAddresses,
+  getPoolListByTokenMintAddresses,
+  isOfficalMarket,
+  LiquidityPoolInfo
+} from '@/utils/pools'
+
+const RAY = getTokenBySymbol('RAY')
+
+export default Vue.extend({
   components: {
     Icon,
-    Popover
+    Tooltip,
+    Button,
+    Progress,
+    Spin,
+    Modal
   },
-  layout: 'home',
 
-  async asyncData({ $accessor, $api }) {
-    if (!$accessor.price.initialized) {
-      await $accessor.price.requestPrices()
+  data() {
+    return {
+      TOKENS,
+
+      // should check if user have enough SOL to have a swap
+      solBalance: null as TokenAmount | null,
+
+      autoRefreshTime: 60,
+      countdown: 0,
+      marketTimer: null as any,
+      initialized: false,
+      loading: false,
+      // swaping
+      swaping: false,
+      asks: {} as any,
+      bids: {} as any,
+
+      isFetchingUnsettled: false,
+      unsettledOpenOrders: null as any,
+
+      // whether have symbol will
+      baseSymbol: '',
+      baseUnsettledAmount: 0,
+      isSettlingBase: false,
+
+      quoteSymbol: '',
+      quoteUnsettledAmount: 0,
+      isSettlingQuote: false,
+
+      coinSelectShow: false,
+      selectFromCoin: true,
+      fixedFromCoin: true,
+
+      fromCoin: RAY as TokenInfo | null,
+      toCoin: null as TokenInfo | null,
+      fromCoinAmount: '',
+      toCoinAmount: '',
+      toCoinWithSlippage: '',
+
+      // wrap
+      isWrap: false,
+      // if priceImpact is higher than 10%, a confirm modal will be shown
+      confirmModalIsOpen: false,
+
+      // serum
+      market: null as any,
+      marketAddress: '',
+      // amm
+      lpMintAddress: '',
+      // trading endpoint
+      endpoint: '',
+      priceImpact: 0,
+
+      coinBasePrice: true,
+      outToPirceValue: 0,
+
+      // whether user has toggle swap button
+      hasPriceSwapped: false,
+
+      officialPool: true,
+      userCheckUnofficial: false,
+      userCheckUnofficialMint: undefined as string | undefined,
+      userCheckUnofficialShow: false,
+      findUrlAmmId: false,
+
+      ammId: undefined as string | undefined,
+
+      ammIdSelectShow: false,
+      ammIdSelectList: [] as LiquidityPoolInfo[] | [],
+
+      ammIdSelectOld: false,
+
+      ammIdOrMarketSearchShow: false,
+
+      userNeedAmmIdOrMarket: undefined as string | undefined,
+
+      setCoinFromMintLoading: false,
+
+      asksAndBidsLoading: true
     }
+  },
 
-    const { tvl, totalvolume } = await $api.getInfo()
-    return { tvl, totalvolume }
-  }
-})
-export default class Index extends Vue {
-  isPopupOpen = false
-  tvl = 0
-  totalvolume = 0
-  timer: number | undefined = undefined
+  head: {
+    title: 'Raydium Swap'
+  },
+
+  computed: {
+    ...mapState(['wallet', 'swap', 'liquidity', 'url', 'setting'])
+  },
+
+  watch: {
+    fromCoinAmount(newAmount: string, oldAmount: string) {
+      this.$nextTick(() => {
+        if (!inputRegex.test(escapeRegExp(newAmount))) {
+          this.fromCoinAmount = oldAmount
+        } else {
+          this.updateAmounts()
+        }
+      })
+    },
+
+    'wallet.tokenAccounts': {
+      handler(newTokenAccounts: any) {
+        this.updateCoinInfo(newTokenAccounts)
+        this.findMarket()
+        if (this.ammId) {
+          this.needUserCheckUnofficialShow(this.ammId)
+        }
+        if (this.market) {
+          this.fetchUnsettledByMarket()
+        }
+        this.solBalance = this.wallet.tokenAccounts[NATIVE_SOL.mintAddress]
+      },
+      deep: true
+    },
+
+    fromCoin(newCoin, oldCoin) {
+      if (
+        !this.setCoinFromMintLoading &&
+        (oldCoin === null || newCoin === null || newCoin.mintAddress !== oldCoin.mintAddress)
+      ) {
+        this.userNeedAmmIdOrMarket = undefined
+        this.findMarket()
+        this.fromCoinAmount = ''
+        this.toCoinAmount = ''
+        this.ammIdSelectOld = false
+      }
+    },
+
+    baseUnsettledAmount() {
+      this.isSettlingBase = false
+    },
+
+    quoteUnsettledAmount() {
+      this.isSettlingQuote = false
+    },
+
+    toCoin(newCoin, oldCoin) {
+      if (
+        !this.setCoinFromMintLoading &&
+        (oldCoin === null || newCoin === null || newCoin.mintAddress !== oldCoin.mintAddress)
+      ) {
+        this.userNeedAmmIdOrMarket = undefined
+        this.findMarket()
+        this.fromCoinAmount = ''
+        this.toCoinAmount = ''
+        this.ammIdSelectOld = false
+      }
+    },
+
+    market() {
+      this.baseSymbol = ''
+      this.baseUnsettledAmount = 0
+      this.quoteSymbol = ''
+      this.quoteUnsettledAmount = 0
+      this.unsettledOpenOrders = null as any
+      this.fetchUnsettledByMarket()
+    },
+
+    marketAddress() {
+      this.updateAmounts()
+    },
+
+    asks() {
+      this.updateAmounts()
+    },
+
+    bids() {
+      this.updateAmounts()
+    },
+
+    'liquidity.infos': {
+      handler(_newInfos: any) {
+        this.updateAmounts()
+        const { from, to, ammId } = this.$route.query
+        if (this.findUrlAmmId) {
+          // @ts-ignore
+          this.setCoinFromMint(ammId, from, to)
+        }
+        this.findMarket()
+      },
+      deep: true
+    },
+
+    'swap.markets': {
+      handler(_newInfos: any) {
+        this.findMarket()
+      },
+      deep: true
+    },
+
+    'setting.slippage': {
+      handler() {
+        this.updateAmounts()
+      },
+      deep: true
+    }
+  },
 
   mounted() {
-    this.timer = window.setInterval(this.getInfo, 1000 * 30)
-  }
+    this.updateCoinInfo(this.wallet.tokenAccounts)
 
-  beforeDestroy() {
-    window.clearInterval(this.timer)
-  }
+    this.setMarketTimer()
 
-  async getInfo() {
-    const { tvl, totalvolume } = await this.$api.getInfo()
-    this.tvl = tvl
-    this.totalvolume = totalvolume
+    const { from, to, ammId } = this.$route.query
+    // @ts-ignore
+    this.setCoinFromMint(ammId, from, to)
+  },
+
+  methods: {
+    gt,
+    get,
+
+    openFromCoinSelect() {
+      this.selectFromCoin = true
+      this.closeAllModal('coinSelectShow')
+      setTimeout(() => {
+        this.coinSelectShow = true
+      }, 1)
+    },
+
+    openToCoinSelect() {
+      this.selectFromCoin = false
+      this.closeAllModal('coinSelectShow')
+      setTimeout(() => {
+        this.coinSelectShow = true
+      }, 1)
+    },
+
+    onCoinSelect(tokenInfo: TokenInfo) {
+      if (tokenInfo !== null) {
+        if (this.selectFromCoin) {
+          this.fromCoin = cloneDeep(tokenInfo)
+
+          if (this.toCoin?.mintAddress === tokenInfo.mintAddress) {
+            this.toCoin = null
+            this.changeCoinAmountPosition()
+          }
+        } else {
+          this.toCoin = cloneDeep(tokenInfo)
+
+          if (this.fromCoin?.mintAddress === tokenInfo.mintAddress) {
+            this.fromCoin = null
+            this.changeCoinAmountPosition()
+          }
+        }
+      } else {
+        // check coin
+        if (this.fromCoin !== null) {
+          const newFromCoin = Object.values(TOKENS).find((item) => item.mintAddress === this.fromCoin?.mintAddress)
+          if (newFromCoin === null || newFromCoin === undefined) {
+            this.fromCoin = null
+          }
+        }
+        if (this.toCoin !== null) {
+          const newToCoin = Object.values(TOKENS).find((item) => item.mintAddress === this.toCoin?.mintAddress)
+          if (newToCoin === null || newToCoin === undefined) {
+            this.toCoin = null
+          }
+        }
+      }
+      this.coinSelectShow = false
+    },
+
+    setCoinFromMint(ammIdOrMarket: string | undefined, from: string | undefined, to: string | undefined) {
+      this.setCoinFromMintLoading = true
+      let fromCoin, toCoin
+      try {
+        this.findUrlAmmId = !this.liquidity.initialized
+        this.userNeedAmmIdOrMarket = ammIdOrMarket
+        // @ts-ignore
+        const liquidityUser = getLiquidityInfoSimilar(ammIdOrMarket, from, to)
+        if (liquidityUser) {
+          if (from) {
+            fromCoin = liquidityUser.coin.mintAddress === from ? liquidityUser.coin : liquidityUser.pc
+            toCoin = liquidityUser.coin.mintAddress === fromCoin.mintAddress ? liquidityUser.pc : liquidityUser.coin
+          }
+          if (to) {
+            toCoin = liquidityUser.coin.mintAddress === to ? liquidityUser.coin : liquidityUser.pc
+            fromCoin = liquidityUser.coin.mintAddress === toCoin.mintAddress ? liquidityUser.pc : liquidityUser.coin
+          }
+          if (!(from && to)) {
+            fromCoin = liquidityUser.coin
+            toCoin = liquidityUser.pc
+          }
+        }
+        if (fromCoin || toCoin) {
+          if (fromCoin) {
+            fromCoin.balance = get(this.wallet.tokenAccounts, `${fromCoin.mintAddress}.balance`)
+            this.fromCoin = fromCoin
+          }
+
+          if (toCoin) {
+            toCoin.balance = get(this.wallet.tokenAccounts, `${toCoin.mintAddress}.balance`)
+            this.toCoin = toCoin
+          }
+        }
+      } catch (error) {
+        this.$notify.warning({
+          message: error.message,
+          description: ''
+        })
+      }
+      setTimeout(() => {
+        this.setCoinFromMintLoading = false
+        this.findMarket()
+      }, 1)
+    },
+
+    needUserCheckUnofficialShow(ammId: string) {
+      if (!this.wallet.connected) {
+        return
+      }
+      if (this.officialPool) {
+        return
+      }
+
+      const localCheckStr = localStorage.getItem(`${this.wallet.address}--checkAmmId`)
+      const localCheckAmmIdList = localCheckStr ? localCheckStr.split('---') : []
+      if (localCheckAmmIdList.includes(ammId)) {
+        this.userCheckUnofficial = true
+        this.userCheckUnofficialMint = ammId
+        this.userCheckUnofficialShow = false
+        return
+      }
+      if (this.userCheckUnofficialMint === ammId) {
+        this.userCheckUnofficial = true
+        this.userCheckUnofficialShow = false
+        return
+      }
+      this.userCheckUnofficial = false
+      this.closeAllModal('userCheckUnofficialShow')
+      setTimeout(() => {
+        this.userCheckUnofficialShow = true
+      }, 1)
+    },
+
+    onAmmIdSelect(liquidityInfo: LiquidityPoolInfo | undefined) {
+      this.ammIdSelectShow = false
+      if (liquidityInfo) {
+        this.lpMintAddress = liquidityInfo.lp.mintAddress
+        this.ammId = liquidityInfo.ammId
+        this.userNeedAmmIdOrMarket = this.ammId
+        this.officialPool = liquidityInfo.official
+        this.findMarket()
+      } else {
+        this.ammIdSelectOld = true
+        this.findMarket()
+      }
+    },
+
+    onAmmIdOrMarketInput(ammIdOrMarket: string) {
+      this.ammIdOrMarketSearchShow = false
+      this.setCoinFromMint(ammIdOrMarket, undefined, undefined)
+      this.findMarket()
+    },
+
+    onUserCheckUnofficialSelect(userSelect: boolean, userSelectAll: boolean) {
+      this.userCheckUnofficialShow = false
+      if (userSelect) {
+        this.userCheckUnofficial = true
+        this.userCheckUnofficialMint = this.ammId
+        if (userSelectAll) {
+          const localCheckStr = localStorage.getItem(`${this.wallet.address}--checkAmmId`)
+          if (localCheckStr) {
+            localStorage.setItem(`${this.wallet.address}--checkAmmId`, localCheckStr + `---${this.ammId}`)
+          } else {
+            localStorage.setItem(`${this.wallet.address}--checkAmmId`, `${this.ammId}`)
+          }
+        }
+      } else {
+        this.fromCoin = null
+        this.toCoin = null
+        this.ammId = undefined
+        this.officialPool = true
+      }
+    },
+
+    changeCoinPosition() {
+      this.setCoinFromMintLoading = true
+      const tempFromCoin = this.fromCoin
+      const tempToCoin = this.toCoin
+      setTimeout(() => {
+        this.setCoinFromMintLoading = false
+      }, 1)
+
+      this.fromCoin = tempToCoin
+      this.toCoin = tempFromCoin
+
+      this.changeCoinAmountPosition()
+    },
+
+    changeCoinAmountPosition() {
+      const tempFromCoinAmount = this.fromCoinAmount
+      const tempToCoinAmount = this.toCoinAmount
+
+      this.fromCoinAmount = tempToCoinAmount
+      this.toCoinAmount = tempFromCoinAmount
+    },
+
+    updateCoinInfo(tokenAccounts: any) {
+      if (this.fromCoin) {
+        const fromCoin = tokenAccounts[this.fromCoin.mintAddress]
+
+        if (fromCoin) {
+          this.fromCoin = { ...this.fromCoin, ...fromCoin }
+        }
+      }
+
+      if (this.toCoin) {
+        const toCoin = tokenAccounts[this.toCoin.mintAddress]
+
+        if (toCoin) {
+          this.toCoin = { ...this.toCoin, ...toCoin }
+        }
+      }
+    },
+
+    findMarket() {
+      if (this.fromCoin && this.toCoin && this.liquidity.initialized) {
+        const InputAmmIdOrMarket = this.userNeedAmmIdOrMarket
+
+        // let userSelectFlag = false
+        // wrap & unwrap
+        if (canWrap(this.fromCoin.mintAddress, this.toCoin.mintAddress)) {
+          this.isWrap = true
+          this.initialized = true
+          this.officialPool = true
+          this.ammId = undefined
+          return
+        }
+
+        let marketAddress = ''
+
+        // serum
+        for (const address of Object.keys(this.swap.markets)) {
+          if (isOfficalMarket(address)) {
+            const info = cloneDeep(this.swap.markets[address])
+            let fromMint = this.fromCoin.mintAddress
+            let toMint = this.toCoin.mintAddress
+            if (fromMint === NATIVE_SOL.mintAddress) {
+              fromMint = TOKENS.WSOL.mintAddress
+            }
+            if (toMint === NATIVE_SOL.mintAddress) {
+              toMint = TOKENS.WSOL.mintAddress
+            }
+            if (
+              (info.baseMint.toBase58() === fromMint && info.quoteMint.toBase58() === toMint) ||
+              (info.baseMint.toBase58() === toMint && info.quoteMint.toBase58() === fromMint)
+            ) {
+              // if (!info.baseDepositsTotal.isZero() && !info.quoteDepositsTotal.isZero()) {
+              marketAddress = address
+              // }
+            }
+          }
+        }
+
+        if (this.fromCoin.mintAddress && this.toCoin.mintAddress) {
+          const liquidityListV4 = getPoolListByTokenMintAddresses(
+            this.fromCoin.mintAddress === TOKENS.WSOL.mintAddress ? NATIVE_SOL.mintAddress : this.fromCoin.mintAddress,
+            this.toCoin.mintAddress === TOKENS.WSOL.mintAddress ? NATIVE_SOL.mintAddress : this.toCoin.mintAddress,
+            typeof InputAmmIdOrMarket === 'string' ? InputAmmIdOrMarket : undefined
+          )
+          const liquidityListV3 = getLpListByTokenMintAddresses(
+            this.fromCoin.mintAddress === TOKENS.WSOL.mintAddress ? NATIVE_SOL.mintAddress : this.fromCoin.mintAddress,
+            this.toCoin.mintAddress === TOKENS.WSOL.mintAddress ? NATIVE_SOL.mintAddress : this.toCoin.mintAddress,
+            typeof InputAmmIdOrMarket === 'string' ? InputAmmIdOrMarket : undefined,
+            [3]
+          )
+
+          let lpMintAddress
+          let ammId
+          let officialPool = true
+          if (liquidityListV4.length === 1 && !liquidityListV4[0].official && liquidityListV3.length > 0) {
+            console.log('v3')
+          } else if (liquidityListV4.length === 1 && liquidityListV4[0].official) {
+            // official
+            lpMintAddress = liquidityListV4[0].lp.mintAddress
+            ammId = liquidityListV4[0].ammId
+            // mark
+            officialPool = liquidityListV4[0].official
+            this.userCheckUnofficialMint = undefined
+            marketAddress = liquidityListV4[0].serumMarket
+          } else if (
+            marketAddress !== '' &&
+            (InputAmmIdOrMarket === undefined || InputAmmIdOrMarket === marketAddress)
+          ) {
+            console.log('official market')
+          } else if (liquidityListV4.length === 1 && InputAmmIdOrMarket) {
+            // user select
+            ammId = liquidityListV4[0].ammId
+            lpMintAddress = liquidityListV4[0].lp.mintAddress
+            officialPool = liquidityListV4[0].official
+            marketAddress = liquidityListV4[0].serumMarket
+          } else if (liquidityListV4.length > 0 && this.ammIdSelectOld) {
+            console.log('last user select none')
+          } else if (liquidityListV4.length > 0) {
+            // user select amm id
+            this.coinSelectShow = false
+            setTimeout(() => {
+              this.ammIdSelectShow = true
+              // @ts-ignore
+              this.ammIdSelectList = Object.values(this.liquidity.infos).filter((item: LiquidityPoolInfo) =>
+                liquidityListV4.find((liquidityItem) => liquidityItem.ammId === item.ammId)
+              )
+            }, 1)
+            return
+          }
+          this.lpMintAddress = lpMintAddress ?? ''
+          this.initialized = true
+          this.ammId = ammId
+          this.officialPool = officialPool
+          if (ammId !== this.userCheckUnofficialMint) {
+            this.userCheckUnofficialMint = undefined
+          }
+          if (ammId) {
+            this.needUserCheckUnofficialShow(ammId)
+          }
+        }
+
+        if (marketAddress) {
+          // const lpPool = LIQUIDITY_POOLS.find((item) => item.serumMarket === marketAddress)
+          if (this.marketAddress !== marketAddress) {
+            this.marketAddress = marketAddress
+            this.isWrap = false
+            Market.load(this.$web3, new PublicKey(marketAddress), {}, new PublicKey(SERUM_PROGRAM_ID_V3)).then(
+              (market) => {
+                this.market = market
+                this.getOrderBooks()
+              }
+            )
+            // this.unsubPoolChange()
+            // this.subPoolChange()
+          }
+        } else {
+          this.endpoint = ''
+          this.marketAddress = ''
+          this.market = null
+          this.lpMintAddress = ''
+          this.isWrap = false
+          // this.unsubPoolChange()
+        }
+        this.updateUrl()
+      } else {
+        this.ammId = undefined
+        this.endpoint = ''
+        this.marketAddress = ''
+        this.market = null
+        this.lpMintAddress = ''
+        this.isWrap = false
+        // this.unsubPoolChange()
+      }
+    },
+
+    getOrderBooks() {
+      this.loading = true
+      this.asksAndBidsLoading = true
+      this.countdown = this.autoRefreshTime
+
+      const conn = this.$web3
+      if (this.marketAddress && get(this.swap.markets, this.marketAddress)) {
+        const marketInfo = get(this.swap.markets, this.marketAddress)
+        const { bids, asks } = marketInfo
+
+        getMultipleAccounts(conn, [bids, asks], commitment)
+          .then((infos) => {
+            infos.forEach((info) => {
+              // @ts-ignore
+              const data = info.account.data
+
+              const orderbook = Orderbook.decode(marketInfo, data)
+
+              const { isBids, slab } = orderbook
+
+              if (isBids) {
+                this.bids = slab
+              } else {
+                this.asks = slab
+              }
+              this.asksAndBidsLoading = false
+            })
+          })
+          .finally(() => {
+            this.initialized = true
+            this.loading = false
+            this.countdown = 0
+          })
+      } else {
+        this.loading = false
+      }
+    },
+
+    updateAmounts() {
+      let toCoinAmount = ''
+      let toCoinWithSlippage = null
+      let price = 0
+      let impact = 0
+      let endpoint = ''
+      if (this.fromCoin && this.toCoin && this.isWrap && this.fromCoinAmount) {
+        // wrap & unwrap
+        this.toCoinAmount = this.fromCoinAmount
+        return
+      }
+      if (this.fromCoin && this.toCoin && this.ammId && this.fromCoinAmount) {
+        // amm
+        const poolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
+        const { amountOut, amountOutWithSlippage, priceImpact } = getSwapOutAmount(
+          poolInfo,
+          this.fromCoin.mintAddress,
+          this.toCoin.mintAddress,
+          this.fromCoinAmount,
+          this.setting.slippage
+        )
+        if (!amountOut.isNullOrZero()) {
+          console.log(`input: ${this.fromCoinAmount} raydium out: ${amountOutWithSlippage.fixed()}`)
+          toCoinAmount = amountOut.fixed()
+          toCoinWithSlippage = amountOutWithSlippage
+          price = +new TokenAmount(
+            parseFloat(toCoinAmount) / parseFloat(this.fromCoinAmount),
+            this.toCoin.decimals,
+            false
+          ).fixed()
+          impact = priceImpact
+          endpoint = 'Raydium Pool'
+        }
+      }
+      if (
+        this.fromCoin &&
+        this.toCoin &&
+        this.marketAddress &&
+        this.market &&
+        this.asks &&
+        this.bids &&
+        this.fromCoinAmount &&
+        !this.asksAndBidsLoading
+      ) {
+        // serum
+        const { amountOut, amountOutWithSlippage, priceImpact } = getOutAmount(
+          this.market,
+          this.asks,
+          this.bids,
+          this.fromCoin.mintAddress,
+          this.toCoin.mintAddress,
+          this.fromCoinAmount,
+          this.setting.slippage
+        )
+
+        const out = new TokenAmount(amountOut, this.toCoin.decimals, false)
+        const outWithSlippage = new TokenAmount(amountOutWithSlippage, this.toCoin.decimals, false)
+
+        if (!out.isNullOrZero()) {
+          console.log(`input: ${this.fromCoinAmount}   serum out: ${outWithSlippage.fixed()}`)
+          if (!toCoinWithSlippage || toCoinWithSlippage.wei.isLessThan(outWithSlippage.wei)) {
+            toCoinAmount = out.fixed()
+            toCoinWithSlippage = outWithSlippage
+            price = +new TokenAmount(
+              parseFloat(toCoinAmount) / parseFloat(this.fromCoinAmount),
+              this.toCoin.decimals,
+              false
+            ).fixed()
+            impact = priceImpact
+            endpoint = 'serum DEX'
+          }
+        }
+      }
+
+      if (toCoinWithSlippage) {
+        this.toCoinAmount = toCoinAmount
+        this.toCoinWithSlippage = toCoinWithSlippage.fixed()
+        this.outToPirceValue = price
+        this.priceImpact = impact
+        this.endpoint = endpoint
+      } else {
+        this.toCoinAmount = ''
+        this.toCoinWithSlippage = ''
+        this.outToPirceValue = 0
+        this.priceImpact = 0
+        this.endpoint = ''
+      }
+    },
+
+    setMarketTimer() {
+      this.marketTimer = setInterval(() => {
+        if (!this.loading) {
+          if (this.countdown < this.autoRefreshTime) {
+            this.countdown += 1
+
+            if (this.countdown === this.autoRefreshTime) {
+              this.getOrderBooks()
+            }
+          }
+        }
+      }, 1000)
+    },
+
+    placeOrder() {
+      this.swaping = true
+
+      const key = getUnixTs().toString()
+      this.$notify.info({
+        key,
+        message: 'Making transaction...',
+        description: '',
+        duration: 0
+      })
+
+      if (this.isWrap) {
+        wrap(
+          this.$axios,
+          this.$web3,
+          // @ts-ignore
+          this.$wallet,
+          // @ts-ignore
+          this.fromCoin.mintAddress,
+          // @ts-ignore
+          this.toCoin.mintAddress,
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${this.fromCoin.mintAddress}.tokenAccountAddress`),
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${this.toCoin.mintAddress}.tokenAccountAddress`),
+          this.fromCoinAmount
+        )
+          .then((txid) => {
+            this.$notify.info({
+              key,
+              message: 'Transaction has been sent',
+              description: (h: any) =>
+                h('div', [
+                  'Confirmation is in progress.  Check your transaction on ',
+                  h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+                ])
+            })
+
+            const description = `Unwrap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.toCoinAmount} ${this.toCoin?.symbol}`
+            this.$accessor.transaction.sub({ txid, description })
+          })
+          .catch((error) => {
+            this.$notify.error({
+              key,
+              message: 'Swap failed',
+              description: error.message
+            })
+          })
+          .finally(() => {
+            this.swaping = false
+          })
+      } else if (this.endpoint === 'Raydium Pool' && this.ammId) {
+        const poolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
+        swap(
+          this.$web3,
+          // @ts-ignore
+          this.$wallet,
+          poolInfo,
+          // @ts-ignore
+          this.fromCoin.mintAddress,
+          // @ts-ignore
+          this.toCoin.mintAddress,
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${this.fromCoin.mintAddress}.tokenAccountAddress`),
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${this.toCoin.mintAddress}.tokenAccountAddress`),
+          this.fromCoinAmount,
+          this.toCoinWithSlippage
+        )
+          .then((txid) => {
+            this.$notify.info({
+              key,
+              message: 'Transaction has been sent',
+              description: (h: any) =>
+                h('div', [
+                  'Confirmation is in progress.  Check your transaction on ',
+                  h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+                ])
+            })
+
+            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.toCoinAmount} ${this.toCoin?.symbol}`
+            this.$accessor.transaction.sub({ txid, description })
+          })
+          .catch((error) => {
+            this.$notify.error({
+              key,
+              message: 'Swap failed',
+              description: error.message
+            })
+          })
+          .finally(() => {
+            this.swaping = false
+          })
+      } else {
+        place(
+          this.$web3,
+          // @ts-ignore
+          this.$wallet,
+          this.market,
+          this.asks,
+          this.bids,
+          // @ts-ignore
+          this.fromCoin.mintAddress,
+          // @ts-ignore
+          this.toCoin.mintAddress,
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${this.fromCoin.mintAddress}.tokenAccountAddress`),
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${this.toCoin.mintAddress}.tokenAccountAddress`),
+          this.fromCoinAmount,
+          this.setting.slippage
+        )
+          .then((txid) => {
+            this.$notify.info({
+              key,
+              message: 'Transaction has been sent',
+              description: (h: any) =>
+                h('div', [
+                  'Confirmation is in progress.  Check your transaction on ',
+                  h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+                ])
+            })
+
+            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.toCoinAmount} ${this.toCoin?.symbol}`
+            this.$accessor.transaction.sub({ txid, description })
+          })
+          .catch((error) => {
+            this.$notify.error({
+              key,
+              message: 'Swap failed',
+              description: error.message
+            })
+          })
+          .finally(() => {
+            this.swaping = false
+          })
+      }
+    },
+
+    async updateUrl() {
+      if (this.$route.path !== '/swap/') {
+        return
+      }
+      const { from, to } = this.$route.query
+      if (this.ammId) {
+        await this.$router.push({
+          path: '/swap/',
+          query: {
+            ammId: this.ammId
+          }
+        })
+      } else if (this.fromCoin && this.toCoin) {
+        if (this.fromCoin.mintAddress !== from || this.toCoin.mintAddress !== to) {
+          await this.$router.push({
+            path: '/swap/',
+            query: {
+              from: this.fromCoin.mintAddress,
+              to: this.toCoin.mintAddress
+            }
+          })
+        }
+      } else if (!(this.$route.query && Object.keys(this.$route.query).length === 0)) {
+        await this.$router.push({
+          path: '/swap/'
+        })
+      }
+    },
+
+    closeAllModal(showName: string) {
+      if (showName !== 'coinSelectShow') {
+        this.coinSelectShow = false
+      }
+      if (showName !== 'ammIdSelectShow') {
+        this.ammIdSelectShow = false
+      }
+      if (showName !== 'userCheckUnofficialShow') {
+        this.userCheckUnofficialShow = false
+      }
+      if (showName !== 'ammIdOrMarketSearchShow') {
+        this.ammIdOrMarketSearchShow = false
+      }
+    },
+
+    async fetchUnsettledByMarket() {
+      if (this.isFetchingUnsettled) return
+      if (!this.$web3 || !this.$wallet || !this.market) return
+      this.isFetchingUnsettled = true
+      try {
+        const info = await checkUnsettledInfo(this.$web3, this.$wallet, this.market)
+        if (!info) throw new Error('not enough data')
+        this.baseSymbol = info.baseSymbol ?? ''
+        this.baseUnsettledAmount = info.baseUnsettledAmount
+
+        this.quoteSymbol = info.quoteSymbol ?? ''
+        this.quoteUnsettledAmount = info.quoteUnsettledAmount
+        this.unsettledOpenOrders = info.openOrders // have to establish an extra state, to store this value
+      } catch (e) {
+      } finally {
+        this.isFetchingUnsettled = false
+      }
+    },
+
+    settleFunds(from: 'base' | 'quote') {
+      const key = getUnixTs().toString()
+      this.$notify.info({
+        key,
+        message: 'Making transaction...',
+        description: '',
+        duration: 0
+      })
+
+      let baseMint = (this.market as Market).baseMintAddress.toBase58()
+      let quoteMint = (this.market as Market).quoteMintAddress.toBase58()
+
+      let baseWallet = get(this.wallet.tokenAccounts, `${baseMint}.tokenAccountAddress`)
+      let quoteWallet = get(this.wallet.tokenAccounts, `${quoteMint}.tokenAccountAddress`)
+      if (from === 'quote') {
+        ;[baseWallet, quoteWallet] = [quoteWallet, baseWallet]
+        ;[baseMint, quoteMint] = [quoteMint, baseMint]
+      }
+      if (from === 'quote') {
+        this.isSettlingQuote = true
+      } else {
+        this.isSettlingBase = true
+      }
+
+      settleFund(
+        this.$web3,
+        this.market,
+        this.unsettledOpenOrders,
+        this.$wallet,
+        baseMint,
+        quoteMint,
+        baseWallet,
+        quoteWallet
+      )
+        .then((txid) => {
+          this.$notify.info({
+            key,
+            message: 'Transaction has been sent',
+            description: (h: any) =>
+              h('div', [
+                'Confirmation is in progress.  Check your transaction on ',
+                h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+              ])
+          })
+
+          const description = `Settle`
+          this.$accessor.transaction.sub({ txid, description })
+        })
+        .then(() => {
+          this.fetchUnsettledByMarket()
+        })
+        .catch((error) => {
+          this.$notify.error({
+            key,
+            message: 'Settle failed',
+            description: error.message
+          })
+          this.isSettlingQuote = false
+          this.isSettlingBase = false
+        })
+    }
   }
-}
+})
 </script>
 
 <style>
-.ant-popover-arrow {
-  border-color: #0c0926 !important;
+.swap-confirm-modal .ant-btn-text {
+  background: transparent;
+  border: none;
 }
-.ant-popover-inner-content {
-  background-color: #0c0926 !important;
+.swap-confirm-modal .title {
+  font-size: 22px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.swap-confirm-modal .description {
+  text-align: center;
+  margin: 0 64px 32px;
+}
+.swap-confirm-modal .description-secondary {
+  font-size: 16px;
+  text-align: center;
+  margin: 0 32px 16px;
+}
+.swap-confirm-modal .description .highlight {
+  font-weight: bold;
+  color: #ed4b9e;
+}
+.swap-confirm-modal .btn-group {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+.swap-confirm-modal .btn-group .cancel-btn {
+  width: 156px;
 }
 </style>
-<style scoped>
-/* utilities */
-.card {
-  padding: 12px 24px;
-  border-radius: 6px;
-}
-.button-like {
-  cursor: pointer;
-  user-select: none;
-  transition: 75ms;
+
+<style lang="less" sxcoped>
+.warning-style {
   font-weight: bold;
-  font-size: 14px;
-  line-height: 18px;
+  color: #f0b90b;
 }
-.button-like:active {
-  filter: brightness(0.75);
-  transform: scale(0.95);
-}
-.button-like:hover {
-  filter: brightness(0.85);
-}
-.button-like .font {
-  display: inline-block;
-}
-.clickable {
-  cursor: pointer;
-}
-
-.icon {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-}
-
-.forsted-glass {
-  position: relative;
-  backdrop-filter: blur(var(--blur-size));
-  color: var(--text-color);
-  border-radius: var(--border-radius);
-  background: linear-gradient(126.7deg, var(--bg-board-color) 28.7%, var(--bg-board-color-2, var(--bg-board-color)));
-}
-.forsted-glass::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.7;
-  background: transparent;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 var(--border-line-width, 1.5px) var(--border-color);
-  mask-image: radial-gradient(at -31% -58%, hsl(0, 0%, 0%, 0.5) 34%, transparent 60%),
-    linear-gradient(to left, hsl(0, 0%, 0%, 0.2) 0%, transparent 13%),
-    linear-gradient(hsl(0deg 0% 0% / 5%), hsl(0deg 0% 0% / 5%));
-}
-.forsted-glass.buriedlightsmoke,
-.forsted-glass.lightsmoke {
-  --border-color: hsl(0, 0%, 100%);
-  --bg-board-color: hsl(0, 0%, 100%, 0.08);
-  --bg-board-color-2: hsl(0, 0%, 100%, 0);
-  --text-color: hsl(0, 0%, 100%);
-  --blur-size: 1.5px;
-  --border-radius: 20px;
-  --border-line-width: 2px;
-}
-.forsted-glass.buriedlightsmoke {
-  --blur-size: 6px;
-}
-.forsted-glass.smoke {
-  --border-color: hsl(0, 0%, 100%);
-  --bg-board-color: hsl(0, 0%, 100%, 0.12);
-  --bg-board-color-2: hsl(0, 0%, 100%, 0);
-  --text-color: hsl(0, 0%, 100%);
-  --blur-size: 2.3px;
-  --border-radius: 20px;
-}
-.forsted-glass.teal {
-  --border-color: hsl(165, 87%, 65%);
-  --bg-board-color: hsl(183, 67%, 54%, 0.2);
-  --bg-board-color-2: hsl(183, 67%, 54%, 0);
-  --text-color: hsl(183, 67%, 54%);
-  --blur-size: 6px;
-  --border-radius: 12px;
-}
-
-.children-center {
-  display: grid;
-  justify-items: center;
-  align-items: center;
-  grid-template-columns: 1fr;
-}
-.children-center,
-.children-text-center > * {
-  text-align: center;
-}
-.children-center,
-.children-flex-content-center > * {
-  justify-content: center;
-}
-
-.title-text {
-  margin-bottom: 32px;
-}
-.title-text .line {
-  margin: 8px auto;
-  width: 40px;
-  height: 1px;
-  border-radius: 2px;
-  background: radial-gradient(39.84% 47.5% at 96.82% 58.33%, #39d0d8 0%, #2b6aff 100%);
-}
-.title-text .text {
-  font-size: 20px;
-  line-height: 27px;
-}
-
-.grid-cover-container {
-  place-items: center;
-  display: grid;
-}
-.grid-cover-container > * {
-  max-width: 100%;
-  grid-area: 1 / 1;
-  overflow: auto;
-}
-
-.page-container {
-  --text-primary: hsl(0, 0%, 100%);
-  --text-secondary: hsl(222deg, 100%, 84%);
-  --text-secondary-light: #c4d6ff;
-
-  overflow: hidden;
-}
-
-.home-navbar {
-  display: flex;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 50px 165px;
-  justify-content: space-between;
-  z-index: 1;
-}
-
-.section-app-face {
-  margin-top: 80px;
-  margin-bottom: 72px;
-  height: 804px;
-  position: relative;
-}
-.section-app-face .image-1 {
-  background-image: url('../assets/background/index_background.svg');
-  background-repeat: no-repeat;
-  height: 100%;
-  width: 744px;
-}
-.section-app-face .title {
-  font-weight: 300;
-  font-size: 64px;
-  line-height: 60px;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-  margin-top: 56px;
-}
-.section-app-face .subtitle {
-  font-style: normal;
+.swap-btn.warning-style {
   font-weight: normal;
-  font-size: 22px;
-  line-height: 30px;
-  color: var(--text-secondary);
-  margin-bottom: 24px;
 }
-.section-app-face .defi-text {
-  font-weight: 700;
-  color: transparent;
-  background: radial-gradient(circle at top right, #39d0d8, #2b6aff);
-  background-clip: text;
+.error-style {
+  font-weight: bold;
+  color: #ed4b9e;
 }
-.section-app-face .row-box-1 {
-  display: grid;
-  grid-auto-flow: column;
-  gap: 32px;
-  margin-bottom: 68px;
-}
-.section-app-face .row-box-1 .card-1 {
-  border-radius: 12px;
-  color: white;
-  background: linear-gradient(245.22deg, #da2eef 35%, #2b6aff 65.17%, #39d0d8 92.1%);
-  background-position: 1% 50%;
-  background-size: 150% 150%;
-  transition: 500ms;
-}
-.section-app-face .row-box-1 .card-1:hover {
-  border-radius: 12px;
-  color: white;
-  background-position: 99% 50%;
-}
-.section-app-face .row-box-1 .card-1 .icon {
-  width: 4px;
-  height: 12px;
-  margin-left: 6px;
-}
-.section-app-face .row-box-1 .card-2 .icon {
-  width: 14px;
-  height: 14px;
-  margin-left: 8px;
-}
-.section-app-face .row-box-2 {
-  display: grid;
-  grid-auto-flow: column;
-  gap: 32px;
-  margin-bottom: 36px;
-}
-.section-app-face .row-box-2 .card {
-  width: 260px;
-  padding: 24px;
-}
-.section-app-face .row-box-2 .card .card-title {
-  font-size: 14px;
-  line-height: 18px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
-}
-.section-app-face .row-box-2 .card .value {
-  font-style: normal;
-  font-weight: 500;
-  font-size: 18px;
-  color: var(--text-primary);
-}
-.section-app-face .row-box-2 .card .value-sign {
-  font-size: 16px;
-}
-.section-app-face .row-box-2 .card .value-number {
-  font-size: 22px;
-  letter-spacing: 2px;
+.swap-btn.error-style {
+  font-weight: normal;
 }
 
-.pop-links {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.pop-links .link {
-  padding: 8px;
-  color: #c4d6ff;
-}
-.pop-links .link:not(:last-child) {
-  box-shadow: 0 1px 0 rgba(196, 214, 255, 0.1);
-}
-.pop-links .link:hover {
-  color: white;
-}
+.container {
+  max-width: 450px;
 
-.section-partners {
-  margin-bottom: 100px;
-}
-.section-partners .boards {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  padding: 0 228px;
-}
-.section-partners .boards > * {
-  flex-grow: 0;
-}
-
-.page-footer {
-  position: relative;
-  background-image: url('../assets/background/index_footer_background.webp'),
-    linear-gradient(transparent 30%, #141041 30%, #141041);
-  background-size: 100% 600px, 100% 100%;
-  display: flow-root;
-}
-.page-footer .links-group {
-  width: 100%;
-  padding: 200px 4% 0;
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-.page-footer .links-group > * {
-  flex-basis: 220px;
-}
-.page-footer .group .title-text .text {
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-.page-footer .group .title-text .line {
-  width: 20px;
-  margin: 0;
-}
-.page-footer .group .links {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--text-secondary-light);
-}
-.page-footer .group .links .link {
-  font-size: 16px;
-  margin-bottom: 26px;
-  display: grid;
-  grid-auto-flow: column;
-  justify-content: start;
-  gap: 12px;
-  align-items: center;
-  color: var(--text-secondary-light);
-}
-.page-footer .group .links .link:hover {
-  color: white;
-}
-.page-footer .group .links .icon-like {
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: grid;
-  place-content: center;
-}
-.page-footer .foot-logo {
-  margin: 16px auto 64px;
-  display: block;
-}
-
-.section-features .feature-title {
-  font-weight: 600;
-  font-size: 20px;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-.section-features .feature-description {
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 16px;
-  color: var(--text-secondary-light);
-  margin-bottom: 20px;
-}
-.section-features .content {
-  max-width: 1220px;
-  overflow: auto;
-  width: 100%;
-}
-
-.section-features .boards {
-  display: grid;
-}
-
-.section-features .boards > .card {
-  padding: 24px 50px;
-  flex: 1 0 120px;
-}
-.section-features .boards > .card > .card.icon-like {
-  padding: 12px;
-  margin-bottom: 12px;
-}
-.section-features .boards > .card > .feature-title {
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.section-features.\-1 {
-  position: relative;
-  margin: 0 auto;
-  padding: 0 96px;
-  max-width: 1320px;
-  min-height: 506px;
-  overflow: hidden;
-  border-radius: 100px;
-  background: radial-gradient(at center top, transparent 20%, hsl(245, 60%, 16%, 0.2)),
-    url('../assets/background/index_background2_lights.webp'), #1b1659;
-  box-shadow: 8px 8px 10px rgba(20, 16, 65, 0.05), -8px -8px 10px rgba(197, 191, 255, 0.05),
-    inset 0 6px 20px rgba(197, 191, 255, 0.2), inset 0 -1px 25px rgba(197, 191, 255, 0.1);
-  background-size: 100% 100%;
-}
-
-.section-features.\-1 .boards {
-  grid-template-columns: repeat(4, 1fr);
-  gap: 22px;
-}
-.section-features.\-1 .boards > .card {
-  grid-template-rows: auto auto 1fr auto;
-}
-
-.section-features.\-1 .image-2 {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(245.22deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%);
-  mask-image: url('../assets/background/index_background2.svg');
-}
-
-.section-features.\-2 .image-3 {
-  background: url('../assets/background/index_background3.webp');
-  background-size: 100% 100%;
-  width: 100%;
-  height: 100%;
-}
-.section-features.\-2 .content {
-  padding: 0 56px;
-  margin: 108px 64px 172px;
-}
-.section-features.\-2 .boards {
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  justify-items: center;
-}
-
-.section-features.\-2 .feature-description {
-  font-size: 16px;
-  line-height: 24px;
-}
-
-.section-features.\-2 .boards > .card {
-  max-width: 360px;
-  grid-template-rows: auto auto 1fr;
-  align-items: initial;
-}
-
-@media (max-width: 1128px) {
-  /* is tablet */
-  .home-navbar {
-    padding: 50px 58px;
-  }
-
-  .section-app-face {
-    margin-top: 116px;
-    height: 720px;
-  }
-  .section-app-face .image-1 {
-    background-size: 100%;
-    width: 668px;
-  }
-  .section-app-face .title {
-    font-size: 48px;
-    line-height: 44px;
-  }
-  .section-app-face .subtitle {
-    font-size: 20px;
-    line-height: 26px;
-  }
-  .section-app-face .row-box-1 {
-    gap: 24px;
-    margin-bottom: 84px;
-  }
-  .section-app-face .row-box-2 {
-    gap: 24px;
-  }
-  .section-app-face .row-box-2 .card .card-title {
-    font-weight: 300;
+  .price-info {
+    display: grid;
+    grid-auto-rows: auto;
+    grid-row-gap: 8px;
+    row-gap: 8px;
+    padding: 0 12px;
     font-size: 12px;
-    line-height: 15px;
-  }
-  .section-app-face .row-box-2 .card .value-sign {
-    font-weight: 300;
-    font-size: 12px;
-  }
-  .section-app-face .row-box-2 .card .value-number {
-    font-weight: 300;
-    font-size: 18px;
+    line-height: 20px;
+    margin-bottom: 6px;
+    .anticon-swap {
+      margin-left: 10px;
+      padding: 5px;
+      border-radius: 50%;
+      background: #000829;
+    }
+    .price-base {
+      line-height: 24px;
+    }
+    .fs-container {
+      .name {
+        opacity: 0.75;
+      }
+    }
   }
 
-  .page-footer {
-    background-size: 200vw 600px, 100% 100%;
-    text-align: center;
-  }
-  .page-footer .links-group .group.community {
-    flex-basis: 100vw;
-  }
-  .page-footer .links-group .title-text .line {
-    margin: 0 auto;
-  }
-  .page-footer .links-group .group.community .title-text {
-    display: none;
-  }
-  .page-footer .links-group .group.community .links {
+  .not-enough-sol-alert {
     display: flex;
     justify-content: center;
-    gap: 40px;
-    margin-top: 24px;
-    margin-bottom: 16px;
-  }
-  .page-footer .links-group .group.community .links .media-name {
-    display: none;
-  }
-  .page-footer .group .links .link {
-    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: -18px;
+    margin-top: 4px;
   }
 
-  .section-features.\-1 {
-    margin: 0 24px;
-    padding: 64px 40px;
-    border-radius: 60px;
-    background: radial-gradient(at center top, transparent 20%, hsl(245, 60%, 16%, 0.2)),
-      url('../assets/background/index_background2_lights_tablet.webp'), #1b1659;
-    background-size: 100% 100%;
-  }
-  .section-features.\-1 .boards {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-  }
-  .section-features.\-2 .boards {
-    grid-template-columns: 1fr;
-  }
-  .section-features.\-2 .image-3 {
-    background-image: url('../assets/background/index_background3_tablet.webp');
-  }
-}
-
-@media (max-width: 768px) {
-  /* is phone */
-  .button-like {
-    font-size: 12px;
-    line-height: 15px;
-  }
-  .card {
-    padding: 10px 20px;
-  }
-  .title-text .text {
-    font-size: 16px;
-    line-height: 20px;
+  .change-side {
+    div {
+      height: 32px;
+      width: 32px;
+      border-radius: 50%;
+      background: #000829;
+      cursor: pointer;
+    }
   }
 
-  .home-navbar {
-    justify-content: center;
-  }
-  .home-navbar > *:nth-child(2n) {
-    display: none;
-  }
-  .section-app-face {
-    margin-top: 116px;
-    height: unset;
-  }
-  .section-app-face .image-1 {
-    width: 394px;
-    height: 430px;
-  }
-  .section-app-face .title {
-    font-size: 32px;
-    line-height: 32px;
-  }
-  .section-app-face .subtitle {
-    font-size: 16px;
-    line-height: 20px;
-    white-space: pre-line;
-    margin-top: -22px; /* to counteract the impact of white-space: pre-line */
-  }
-  .section-app-face .row-box-1 {
-    gap: 20px;
-    margin-bottom: 56px;
-  }
-  .section-app-face .row-box-1 .card-1 {
-    font-size: 12px;
-    line-height: 15px;
-  }
-  .section-app-face .row-box-2 {
-    gap: 20px;
-  }
-  .section-app-face .row-box-2 .card {
-    width: 165px;
-    padding: 16px;
-
-    --border-radius: 11.27px;
-  }
-  .section-app-face .row-box-2 .card .card-title {
-    font-size: 8px;
-    line-height: 10px;
-  }
-  .section-app-face .row-box-2 .card .value {
-    line-height: 0;
-  }
-  .section-app-face .row-box-2 .card .value-sign {
-    font-size: 8px;
-    line-height: 10px;
-  }
-  .section-app-face .row-box-2 .card .value-number {
-    font-size: 12px;
-    line-height: 15px;
-  }
-  .section-app-face .solana-logo {
-    display: block;
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%) scale(0.8);
-    bottom: -32px;
-  }
-
-  .page-footer .links-group {
-    gap: 56px;
-  }
-  .section-partners .boards {
-    width: unset;
-    justify-content: unset;
-    padding: unset;
+  .fetching-unsettled {
+    margin: 12px;
+    display: flex;
     flex-direction: column;
-    gap: 40px;
-  }
-
-  .section-features .feature-title {
-    font-size: 18px;
-    line-height: 23px;
-  }
-  .section-features .feature-description {
-    font-size: 14px;
-    line-height: 16px;
-  }
-
-  .section-features.\-1 {
-    border-radius: 40px;
-    background: radial-gradient(at center top, transparent 20%, hsl(245, 60%, 16%, 0.2)),
-      url('../assets/background/index_background2_lights_mobile.webp'), #1b1659;
-    background-size: 100% 100%;
-    padding: 56px 20px;
-  }
-  .section-features.\-1 .boards {
-    grid-template-columns: 1fr;
-  }
-  .section-features.\-2 .boards {
-    grid-template-columns: 1fr;
-  }
-  .section-features.\-2 .content {
-    padding: 0 20px;
-  }
-  .section-features.\-2 .image-3 {
-    background-image: url('../assets/background/index_background3_mobile.webp');
-  }
-  .section-features.\-2 .feature-description {
-    font-size: 14px;
-    line-height: 20px;
-  }
-  .section-features .boards > .card {
-    padding: 44px 20px;
-  }
-  .page-footer .links-group .group {
-    flex-basis: 100vw;
-  }
-  .page-footer .group .links .link {
     justify-content: center;
+    color: #ffffffad;
+    span {
+      margin-top: 16px;
+      text-align: center;
+    }
+  }
+
+  .settle.card-body {
+    padding: 16px 24px;
+  }
+  .extra {
+    margin-top: 32px;
+    margin-bottom: 32px;
+
+    .settel-panel {
+      .align-right {
+        text-align: right;
+      }
+      th {
+        font-weight: normal;
+      }
+      td {
+        padding-bottom: 4px;
+        width: 25%;
+      }
+      thead {
+        font-size: 14px;
+        tr:first-child {
+          margin-top: 8px;
+        }
+      }
+      tbody {
+        tr:first-child {
+          td {
+            padding-top: 6px;
+          }
+        }
+      }
+    }
   }
 }
 </style>

@@ -149,14 +149,14 @@
         </div>
 
         <CoinInput
-          v-model="toCoinAmount"
+          v-model="best_toCoinAmount"
           label="To (Estimate)"
           :mint-address="toCoin ? toCoin.mintAddress : ''"
           :coin-name="toCoin ? toCoin.symbol : ''"
           :balance="toCoin ? toCoin.balance : null"
           :show-max="false"
           :disabled="true"
-          @onInput="(amount) => (toCoinAmount = amount)"
+          @onInput="(amount) => (best_toCoinAmount = amount)"
           @onFocus="
             () => {
               fixedFromCoin = false
@@ -165,7 +165,7 @@
           @onMax="
             () => {
               fixedFromCoin = false
-              toCoinAmount = toCoin.balance.fixed()
+              best_toCoinAmount = toCoin.balance.fixed()
             }
           "
           @onSelect="openToCoinSelect"
@@ -180,7 +180,7 @@
           <div v-else-if="fromCoin && toCoin && lpMintAddress && fromCoinAmount" class="price-base fc-container">
             <span>
               1 {{ hasPriceSwapped ? toCoin.symbol : fromCoin.symbol }} ≈
-              {{ hasPriceSwapped ? (1 / outToPirceValue).toFixed(6) : outToPirceValue }}
+              {{ hasPriceSwapped ? (1 / best_outToPirceValue).toFixed(6) : best_outToPirceValue }}
               {{ hasPriceSwapped ? fromCoin.symbol : toCoin.symbol }}
               <Icon type="swap" @click="() => (hasPriceSwapped = !hasPriceSwapped)" />
             </span>
@@ -191,7 +191,7 @@
           >
             <span>
               1 {{ hasPriceSwapped ? toCoin.symbol : fromCoin.symbol }} ≈
-              {{ hasPriceSwapped ? (1 / outToPirceValue).toFixed(6) : outToPirceValue }}
+              {{ hasPriceSwapped ? (1 / best_outToPirceValue).toFixed(6) : best_outToPirceValue }}
               {{ hasPriceSwapped ? fromCoin.symbol : toCoin.symbol }}
               <Icon type="swap" @click="() => (hasPriceSwapped = !hasPriceSwapped)" />
             </span>
@@ -207,39 +207,46 @@
             ></span>
             <span> {{ $accessor.setting.slippage }}% </span>
           </div>
-          <div v-if="endpoint" class="fs-container">
-            <span class="name">
-              Swapping Through
-              <Tooltip placement="right">
-                <template slot="title"> This venue gave the best price for your trade </template>
-                <Icon type="question-circle" /> </Tooltip
-            ></span>
-            <span style="text-transform: capitalize"> {{ endpoint }} </span>
+          <div v-for="price in prices" :key="price.endpoint">
+            <div v-if="price.endpoint" class="fs-container">
+              <span class="name"> {{ price.endpoint }}</span>
+              <span style="text-transform: capitalize"> {{price.toCoinAmount}}</span>
+              <span style="text-transform: capitalize"> {{price.toCoinWithSlippage.fixed()}}</span>
+              <span style="text-transform: capitalize"> {{toCoin.symbol}}</span>
+            </div>
           </div>
-          <div v-if="fromCoin && toCoin && fromCoinAmount && toCoinWithSlippage" class="fs-container">
+          <div v-if="best_endpoint" class="fc-container">
+            <span class="text-transform: capitalize"> Best DeFi to swap</span>
+          </div>
+          <div v-if="best_endpoint" class="fs-container">
+            <span class="name"> {{ best_endpoint }}</span>
+            <span style="text-transform: capitalize"> {{best_toCoinAmount}} {{toCoin.symbol}}</span>
+          </div>
+
+          <div v-if="fromCoin && toCoin && fromCoinAmount && best_toCoinWithSlippage" class="fs-container">
             <span class="name">
               Minimum Received
               <Tooltip placement="right">
                 <template slot="title"> The least amount of tokens you will recieve on this trade </template>
                 <Icon type="question-circle" /> </Tooltip
             ></span>
-            <span> {{ toCoinWithSlippage }} {{ toCoin.symbol }} </span>
+            <span> {{ best_toCoinWithSlippage }} {{ toCoin.symbol }} </span>
           </div>
           <div
-            v-if="endpoint"
+            v-if="best_endpoint"
             :class="`fs-container price-impact ${
-              priceImpact > 10 ? 'error-style' : priceImpact > 5 ? 'warning-style' : ''
+              best_priceImpact > 10 ? 'error-style' : best_priceImpact > 5 ? 'warning-style' : ''
             }`"
           >
             <span class="name">
-              Price Impact {{ priceImpact > 5 ? 'Warning' : '' }}
+              Price Impact {{ best_priceImpact > 5 ? 'Warning' : '' }}
               <Tooltip placement="right">
                 <template slot="title">
                   The difference between the market price and estimated price due to trade size
                 </template>
                 <Icon type="question-circle" style="cursor: pointer" /> </Tooltip
             ></span>
-            <span :style="`color: ${priceImpact <= 5 ? '#31d0aa' : ''}`"> {{ priceImpact.toFixed(2) }}% </span>
+            <span :style="`color: ${best_priceImpact <= 5 ? '#31d0aa' : ''}`"> {{ best_priceImpact.toFixed(2) }}% </span>
           </div>
         </div>
 
@@ -294,14 +301,14 @@
               get(liquidity.infos, `${lpMintAddress}.status`) !== 1) ||
             swaping ||
             (fromCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, fromCoinAmount)) ||
-            (toCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, toCoinAmount))
+            (toCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, best_toCoinAmount))
           "
           :loading="swaping"
           style="width: 100%"
-          :class="`swap-btn ${priceImpact > 10 ? 'error-style' : priceImpact > 5 ? 'warning-style' : ''}`"
+          :class="`swap-btn ${best_priceImpact > 10 ? 'error-style' : best_priceImpact > 5 ? 'warning-style' : ''}`"
           @click="
             () => {
-              if (priceImpact > 10) {
+              if (best_priceImpact > 10) {
                 confirmModalIsOpen = true
               } else {
                 placeOrder()
@@ -339,10 +346,10 @@
           <template v-else-if="fromCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, fromCoinAmount)">
             xCOPE amount must greater than 5
           </template>
-          <template v-else-if="toCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, toCoinAmount)">
+          <template v-else-if="toCoin.mintAddress === TOKENS.xCOPE.mintAddress && gt(5, best_toCoinAmount)">
             xCOPE amount must greater than 5
           </template>
-          <template v-else>{{ isWrap ? 'Unwrap' : priceImpact > 5 ? 'Swap Anyway' : 'Swap' }}</template>
+          <template v-else>{{ isWrap ? 'Unwrap' : best_priceImpact > 5 ? 'Swap Anyway' : 'Swap' }}</template>
         </Button>
         <div v-if="solBalance && +solBalance.balance.fixed() - 0.05 <= 0" class="not-enough-sol-alert">
           <span class="caution-text">Caution: Your SOL balance is low</span>
@@ -462,6 +469,7 @@ import { getOutAmount, getSwapOutAmount, place, swap, wrap, checkUnsettledInfo, 
 import { TokenAmount, gt } from '@/utils/safe-math'
 import { getUnixTs } from '@/utils'
 import { canWrap, getLiquidityInfoSimilar } from '@/utils/liquidity'
+
 import {
   getLpListByTokenMintAddresses,
   getPoolListByTokenMintAddresses,
@@ -470,6 +478,14 @@ import {
 } from '@/utils/pools'
 
 const RAY = getTokenBySymbol('RAY')
+
+interface PriceInfo {
+  endpoint:string
+  toCoinAmount:string,
+  toCoinWithSlippage:TokenAmount,
+  price:string,
+  priceImpact:number
+}
 
 export default Vue.extend({
   components: {
@@ -517,8 +533,15 @@ export default Vue.extend({
       fromCoin: RAY as TokenInfo | null,
       toCoin: null as TokenInfo | null,
       fromCoinAmount: '',
-      toCoinAmount: '',
-      toCoinWithSlippage: '',
+
+      best_toCoinAmount: '',
+      best_toCoinWithSlippage: '',
+      // trading endpoint
+      best_endpoint: '',
+      best_priceImpact: 0,
+      best_outToPirceValue: 0,
+
+      prices: [] as PriceInfo[],
 
       // wrap
       isWrap: false,
@@ -530,12 +553,8 @@ export default Vue.extend({
       marketAddress: '',
       // amm
       lpMintAddress: '',
-      // trading endpoint
-      endpoint: '',
-      priceImpact: 0,
 
       coinBasePrice: true,
-      outToPirceValue: 0,
 
       // whether user has toggle swap button
       hasPriceSwapped: false,
@@ -564,7 +583,7 @@ export default Vue.extend({
   },
 
   head: {
-    title: 'Raydium Swap'
+    title: 'Atlas Swap'
   },
 
   computed: {
@@ -605,7 +624,7 @@ export default Vue.extend({
         this.userNeedAmmIdOrMarket = undefined
         this.findMarket()
         this.fromCoinAmount = ''
-        this.toCoinAmount = ''
+        this.best_toCoinAmount = ''
         this.ammIdSelectOld = false
       }
     },
@@ -626,7 +645,7 @@ export default Vue.extend({
         this.userNeedAmmIdOrMarket = undefined
         this.findMarket()
         this.fromCoinAmount = ''
-        this.toCoinAmount = ''
+        this.best_toCoinAmount = ''
         this.ammIdSelectOld = false
       }
     },
@@ -875,10 +894,10 @@ export default Vue.extend({
 
     changeCoinAmountPosition() {
       const tempFromCoinAmount = this.fromCoinAmount
-      const tempToCoinAmount = this.toCoinAmount
+      const tempToCoinAmount = this.best_toCoinAmount
 
       this.fromCoinAmount = tempToCoinAmount
-      this.toCoinAmount = tempFromCoinAmount
+      this.best_toCoinAmount = tempFromCoinAmount
     },
 
     updateCoinInfo(tokenAccounts: any) {
@@ -1015,18 +1034,21 @@ export default Vue.extend({
             // this.unsubPoolChange()
             // this.subPoolChange()
           }
-        } else {
-          this.endpoint = ''
-          this.marketAddress = ''
-          this.market = null
-          this.lpMintAddress = ''
-          this.isWrap = false
-          // this.unsubPoolChange()
-        }
+        } 
+        this.updateAmounts()
+        // else {
+        //   this.endpoint = ''
+        //   this.marketAddress = ''
+        //   this.market = null
+        //   this.lpMintAddress = ''
+        //   this.isWrap = false
+        //   // this.unsubPoolChange()
+        // }
         this.updateUrl()
       } else {
         this.ammId = undefined
-        this.endpoint = ''
+        this.best_endpoint = ''
+        this.prices = []
         this.marketAddress = ''
         this.market = null
         this.lpMintAddress = ''
@@ -1074,20 +1096,19 @@ export default Vue.extend({
     },
 
     updateAmounts() {
-      let toCoinAmount = ''
-      let toCoinWithSlippage = null
-      let price = 0
-      let impact = 0
-      let endpoint = ''
+      this.prices = []
+      let found = false
       if (this.fromCoin && this.toCoin && this.isWrap && this.fromCoinAmount) {
         // wrap & unwrap
-        this.toCoinAmount = this.fromCoinAmount
+        this.best_toCoinAmount = this.fromCoinAmount
         return
       }
       if (this.fromCoin && this.toCoin && this.ammId && this.fromCoinAmount) {
         // amm
         const poolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
-        const { amountOut, amountOutWithSlippage, priceImpact } = getSwapOutAmount(
+        const { amountOut, amountOutWithSlippage
+        , priceImpact
+         } = getSwapOutAmount(
           poolInfo,
           this.fromCoin.mintAddress,
           this.toCoin.mintAddress,
@@ -1095,16 +1116,24 @@ export default Vue.extend({
           this.setting.slippage
         )
         if (!amountOut.isNullOrZero()) {
-          console.log(`input: ${this.fromCoinAmount} raydium out: ${amountOutWithSlippage.fixed()}`)
-          toCoinAmount = amountOut.fixed()
-          toCoinWithSlippage = amountOutWithSlippage
-          price = +new TokenAmount(
+          // console.log(`input: ${this.fromCoinAmount} raydium out: ${amountOutWithSlippage.fixed()}`)
+          const endpoint = 'Raydium Pool'
+          const toCoinAmount = amountOut.fixed()
+          const toCoinWithSlippage = amountOutWithSlippage
+          const price = +new TokenAmount(
             parseFloat(toCoinAmount) / parseFloat(this.fromCoinAmount),
             this.toCoin.decimals,
             false
           ).fixed()
-          impact = priceImpact
-          endpoint = 'Raydium Pool'
+          const curPrice: PriceInfo  = {
+            endpoint,
+            toCoinAmount,
+            toCoinWithSlippage,
+            price,
+            priceImpact
+          }
+          this.prices.push(curPrice)
+          found = true
         }
       }
       if (
@@ -1118,7 +1147,9 @@ export default Vue.extend({
         !this.asksAndBidsLoading
       ) {
         // serum
-        const { amountOut, amountOutWithSlippage, priceImpact } = getOutAmount(
+        const { amountOut, amountOutWithSlippage
+        , priceImpact 
+        } = getOutAmount(
           this.market,
           this.asks,
           this.bids,
@@ -1133,32 +1164,46 @@ export default Vue.extend({
 
         if (!out.isNullOrZero()) {
           console.log(`input: ${this.fromCoinAmount}   serum out: ${outWithSlippage.fixed()}`)
-          if (!toCoinWithSlippage || toCoinWithSlippage.wei.isLessThan(outWithSlippage.wei)) {
-            toCoinAmount = out.fixed()
-            toCoinWithSlippage = outWithSlippage
-            price = +new TokenAmount(
-              parseFloat(toCoinAmount) / parseFloat(this.fromCoinAmount),
-              this.toCoin.decimals,
-              false
-            ).fixed()
-            impact = priceImpact
-            endpoint = 'serum DEX'
+          const endpoint = 'serum Dex'
+          const toCoinAmount = out.fixed()
+          const toCoinWithSlippage = outWithSlippage
+          const price = +new TokenAmount(
+            parseFloat(toCoinAmount) / parseFloat(this.fromCoinAmount),
+            this.toCoin.decimals,
+            false
+          ).fixed()
+          const curPrice: PriceInfo = {
+            endpoint,
+            toCoinAmount,
+            toCoinWithSlippage,
+            price,
+            priceImpact
           }
+          this.prices.push(curPrice)
+          found = true
+
         }
       }
+      if(found){
+        this.best_toCoinAmount = "0"
+        this.prices.forEach((item:{})=>{
 
-      if (toCoinWithSlippage) {
-        this.toCoinAmount = toCoinAmount
-        this.toCoinWithSlippage = toCoinWithSlippage.fixed()
-        this.outToPirceValue = price
-        this.priceImpact = impact
-        this.endpoint = endpoint
-      } else {
-        this.toCoinAmount = ''
-        this.toCoinWithSlippage = ''
-        this.outToPirceValue = 0
-        this.priceImpact = 0
-        this.endpoint = ''
+          if(parseFloat(item.toCoinAmount) > parseFloat(this.best_toCoinAmount))
+          {
+            this.best_toCoinAmount = item.toCoinAmount
+            this.best_toCoinWithSlippage = item.toCoinWithSlippage.fixed()
+            this.best_outToPirceValue = item.price
+            this.best_priceImpact = item.priceImpact
+            this.best_endpoint = item.endpoint
+          }
+        })
+      }
+      else{
+        this.best_toCoinAmount = ''
+        this.best_toCoinWithSlippage = ''
+        this.best_outToPirceValue = 0
+        this.best_priceImpact = 0
+        this.best_endpoint = ''
       }
     },
 
@@ -1214,7 +1259,7 @@ export default Vue.extend({
                 ])
             })
 
-            const description = `Unwrap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.toCoinAmount} ${this.toCoin?.symbol}`
+            const description = `Unwrap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin?.symbol}`
             this.$accessor.transaction.sub({ txid, description })
           })
           .catch((error) => {
@@ -1227,7 +1272,7 @@ export default Vue.extend({
           .finally(() => {
             this.swaping = false
           })
-      } else if (this.endpoint === 'Raydium Pool' && this.ammId) {
+      } else if (this.best_endpoint === 'Raydium Pool' && this.ammId) {
         const poolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
         swap(
           this.$web3,
@@ -1243,7 +1288,7 @@ export default Vue.extend({
           // @ts-ignore
           get(this.wallet.tokenAccounts, `${this.toCoin.mintAddress}.tokenAccountAddress`),
           this.fromCoinAmount,
-          this.toCoinWithSlippage
+          this.best_toCoinWithSlippage
         )
           .then((txid) => {
             this.$notify.info({
@@ -1256,7 +1301,7 @@ export default Vue.extend({
                 ])
             })
 
-            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.toCoinAmount} ${this.toCoin?.symbol}`
+            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin?.symbol}`
             this.$accessor.transaction.sub({ txid, description })
           })
           .catch((error) => {
@@ -1299,7 +1344,7 @@ export default Vue.extend({
                 ])
             })
 
-            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.toCoinAmount} ${this.toCoin?.symbol}`
+            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin?.symbol}`
             this.$accessor.transaction.sub({ txid, description })
           })
           .catch((error) => {

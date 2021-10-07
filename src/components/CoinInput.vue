@@ -26,7 +26,7 @@
           HALF
         </button>
         <button v-if="!disabled && balance" class="input-button" @click="inputBalanceByPercent(1)">MAX</button>
-        <button class="select-button fc-container" @click="$emit('onSelect')">
+        <button class="select-button fc-container" :disabled="tokenDisabled" @click="$emit('onSelect')" >
           <div v-if="coinName" class="fc-container">
             <CoinIcon :mint-address="mintAddress" style="border-radius: 50%" />
             <span>{{ coinName }}</span>
@@ -108,6 +108,10 @@ export default Vue.extend({
       default: false
     },
     disabled: {
+      type: Boolean,
+      default: false
+    },
+    tokenDisabled:{
       type: Boolean,
       default: false
     }
@@ -195,6 +199,9 @@ export default Vue.extend({
 
       &:hover {
         background-color: @modal-header-bg;
+      }
+      &:hover[disabled] {
+        background-color: transparent;
       }
     }
 

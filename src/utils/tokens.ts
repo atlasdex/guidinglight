@@ -1,7 +1,8 @@
 import { cloneDeep } from 'lodash-es'
-
+import { PublicKey } from '@solana/web3.js'
+import {commitment} from '@/utils/web3'
+import { ACCOUNT_LAYOUT } from '@/utils/layouts'
 import { TokenAmount } from '@/utils/safe-math'
-
 export interface TokenInfo {
   symbol: string
   name: string
@@ -69,7 +70,12 @@ export function getTokenSymbolByMint(mint: string) {
   }
   return 'UNKNOWN'
 }
-
+export async function getTokenBalance(connection:any, tokenAccount:string){
+  const info = await connection.getAccountInfo(new PublicKey(tokenAccount), commitment)
+  const data = Buffer.from(info.data)
+  const parsed = ACCOUNT_LAYOUT.decode(data)
+  return parsed.amount
+}
 export interface Tokens {
   [key: string]: any
   [index: number]: any
@@ -129,6 +135,14 @@ export const TOKENS: Tokens = {
     mintAddress: 'BQcdHdAQW1hczDbBi9hiegXAR7A98Q9jx3X3iBBBDiq4',
     decimals: 6,
     referrer: 'CA98hYunCLKgBuD6N8MJSgq1GbW9CXdksLf5mw736tS3',
+    tags: ['raydium']
+  },
+  wUSDTv2: {
+    symbol: 'wUSDTv2',
+    name: 'USDT(Wormhole v2)',
+    mintAddress: 'Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1',
+    decimals: 6,
+    referrer: '',
     tags: ['raydium']
   },
   USDC: {

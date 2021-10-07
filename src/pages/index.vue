@@ -1,7 +1,7 @@
 <template>
   <div class="swap container">
     <div class="page-head fs-container">
-      <span class="title">Swap</span>
+      <span class="title">Cross-Chain Swap</span>
       <div class="buttons">
         <Tooltip placement="bottomRight">
           <template slot="title">
@@ -142,11 +142,11 @@
           @onSelect="openFromCoinSelect"
         />
 
-        <div class="change-side fc-container">
+        <!--<div class="change-side fc-container">
           <div class="fc-container" @click="changeCoinPosition">
             <Icon type="swap" :rotate="90" />
           </div>
-        </div>
+        </div>-->
 
         <CoinInput
           v-model="best_toCoinAmount"
@@ -156,6 +156,7 @@
           :balance="toCoin ? toCoin.balance : null"
           :show-max="false"
           :disabled="true"
+          :token-disabled = "true"
           @onInput="(amount) => (best_toCoinAmount = amount)"
           @onFocus="
             () => {
@@ -169,6 +170,29 @@
             }
           "
           @onSelect="openToCoinSelect"
+        />
+        <CoinInput
+          v-model="best_toCoinAmount"
+          label="To (Estimate)"
+          :mint-address="toCoin1 ? toCoin1.mintAddress : ''"
+          :coin-name="toCoin1 ? toCoin1.symbol : ''"
+          :balance="toCoin1 ? toCoin1.balance : null"
+          :show-max="false"
+          :disabled="true"
+          :token-disabled = "true"
+          @onInput="(amount) => (best_toCoinAmount = amount)"
+          @onFocus="
+            () => {
+              fixedFromCoin = false
+            }
+          "
+          @onMax="
+            () => {
+              fixedFromCoin = false
+              best_toCoinAmount = toCoin1.balance.fixed()
+            }
+          "
+          @onSelect="openToCoinSelect1"
         />
         <div class="price-info" style="padding: 0 12px">
           <div v-if="fromCoin && toCoin && isWrap && fromCoinAmount" class="price-base fc-container">
@@ -461,11 +485,14 @@ import { cloneDeep, get } from 'lodash-es'
 import { Market, Orderbook } from '@project-serum/serum/lib/market.js'
 
 import { PublicKey } from '@solana/web3.js'
+import {stableSwap, STABLE_POOLS} from '@/utils/stable_swap'
+
 import { getTokenBySymbol, TokenInfo, NATIVE_SOL, TOKENS } from '@/utils/tokens'
 import { inputRegex, escapeRegExp } from '@/utils/regex'
 import { getMultipleAccounts, commitment } from '@/utils/web3'
 import { SERUM_PROGRAM_ID_V3 } from '@/utils/ids'
-import { getOutAmount, getSwapOutAmount, place, swap, wrap, checkUnsettledInfo, settleFund } from '@/utils/swap'
+
+import { getOutAmount, getSwapOutAmount, place as serumPlace, swap as raydiumSwap, wrap, checkUnsettledInfo, settleFund } from '@/utils/swap'
 import { TokenAmount, gt } from '@/utils/safe-math'
 import { getUnixTs } from '@/utils'
 import { canWrap, getLiquidityInfoSimilar } from '@/utils/liquidity'
@@ -477,13 +504,15 @@ import {
   LiquidityPoolInfo
 } from '@/utils/pools'
 
-const RAY = getTokenBySymbol('RAY')
+const StartToken = getTokenBySymbol('USDC')
+const FromStableToken = getTokenBySymbol('USDT')
+const ToStableToken = getTokenBySymbol('wUSDTv2')
 
 interface PriceInfo {
   endpoint:string
   toCoinAmount:string,
   toCoinWithSlippage:TokenAmount,
-  price:string,
+  price:number,
   priceImpact:number
 }
 
@@ -527,11 +556,12 @@ export default Vue.extend({
       isSettlingQuote: false,
 
       coinSelectShow: false,
-      selectFromCoin: true,
+      coinIndex: 1,
       fixedFromCoin: true,
 
-      fromCoin: RAY as TokenInfo | null,
-      toCoin: null as TokenInfo | null,
+      fromCoin: StartToken as TokenInfo | null,
+      toCoin: FromStableToken as TokenInfo | null,
+      toCoin1: ToStableToken as TokenInfo | null,
       fromCoinAmount: '',
 
       best_toCoinAmount: '',
@@ -583,7 +613,7 @@ export default Vue.extend({
   },
 
   head: {
-    title: 'Atlas Swap'
+    title: 'Atlas Cross-Chain Swap'
   },
 
   computed: {
@@ -714,7 +744,7 @@ export default Vue.extend({
     get,
 
     openFromCoinSelect() {
-      this.selectFromCoin = true
+      this.coinIndex = 1
       this.closeAllModal('coinSelectShow')
       setTimeout(() => {
         this.coinSelectShow = true
@@ -722,7 +752,15 @@ export default Vue.extend({
     },
 
     openToCoinSelect() {
-      this.selectFromCoin = false
+      this.coinIndex = 2
+      this.closeAllModal('coinSelectShow')
+      setTimeout(() => {
+        this.coinSelectShow = true
+      }, 1)
+    },
+
+    openToCoinSelect1() {
+      this.coinIndex = 3
       this.closeAllModal('coinSelectShow')
       setTimeout(() => {
         this.coinSelectShow = true
@@ -731,18 +769,29 @@ export default Vue.extend({
 
     onCoinSelect(tokenInfo: TokenInfo) {
       if (tokenInfo !== null) {
-        if (this.selectFromCoin) {
+        if (this.coinIndex === 1) {
           this.fromCoin = cloneDeep(tokenInfo)
 
           if (this.toCoin?.mintAddress === tokenInfo.mintAddress) {
             this.toCoin = null
             this.changeCoinAmountPosition()
           }
-        } else {
+        } else if (this.coinIndex === 2){
           this.toCoin = cloneDeep(tokenInfo)
 
           if (this.fromCoin?.mintAddress === tokenInfo.mintAddress) {
             this.fromCoin = null
+            this.changeCoinAmountPosition()
+          }
+        } else if (this.coinIndex === 3){
+          this.toCoin1 = cloneDeep(tokenInfo)
+
+          if (this.fromCoin?.mintAddress === tokenInfo.mintAddress) {
+            this.fromCoin = null
+            this.changeCoinAmountPosition()
+          }
+          if (this.toCoin?.mintAddress === tokenInfo.mintAddress) {
+            this.toCoin = null
             this.changeCoinAmountPosition()
           }
         }
@@ -752,6 +801,7 @@ export default Vue.extend({
           const newFromCoin = Object.values(TOKENS).find((item) => item.mintAddress === this.fromCoin?.mintAddress)
           if (newFromCoin === null || newFromCoin === undefined) {
             this.fromCoin = null
+
           }
         }
         if (this.toCoin !== null) {
@@ -760,6 +810,13 @@ export default Vue.extend({
             this.toCoin = null
           }
         }
+        if (this.toCoin1 !== null) {
+          const newToCoin1 = Object.values(TOKENS).find((item) => item.mintAddress === this.toCoin1?.mintAddress)
+          if (newToCoin1 === null || newToCoin1 === undefined) {
+            this.toCoin1 = null
+          }
+        }
+
       }
       this.coinSelectShow = false
     },
@@ -914,6 +971,13 @@ export default Vue.extend({
 
         if (toCoin) {
           this.toCoin = { ...this.toCoin, ...toCoin }
+        }
+      }
+      if (this.toCoin1) {
+        const toCoin1 = tokenAccounts[this.toCoin1.mintAddress]
+
+        if (toCoin1) {
+          this.toCoin1 = { ...this.toCoin1, ...toCoin1 }
         }
       }
     },
@@ -1164,7 +1228,7 @@ export default Vue.extend({
 
         if (!out.isNullOrZero()) {
           console.log(`input: ${this.fromCoinAmount}   serum out: ${outWithSlippage.fixed()}`)
-          const endpoint = 'serum Dex'
+          const endpoint = 'Serum Dex'
           const toCoinAmount = out.fixed()
           const toCoinWithSlippage = outWithSlippage
           const price = +new TokenAmount(
@@ -1186,7 +1250,7 @@ export default Vue.extend({
       }
       if(found){
         this.best_toCoinAmount = "0"
-        this.prices.forEach((item:{})=>{
+        this.prices.forEach((item:PriceInfo)=>{
 
           if(parseFloat(item.toCoinAmount) > parseFloat(this.best_toCoinAmount))
           {
@@ -1220,7 +1284,50 @@ export default Vue.extend({
         }
       }, 1000)
     },
+    doStableSwap(amountIncreased:string){
+      const key = getUnixTs().toString()
 
+      stableSwap(
+        this.$web3,
+        // @ts-ignore
+        this.$wallet,
+        STABLE_POOLS.USDT,
+        // @ts-ignore
+        this.toCoin.mintAddress,
+        // @ts-ignore
+        this.toCoin1.mintAddress,
+        // @ts-ignore
+        get(this.wallet.tokenAccounts, `${this.toCoin.mintAddress}.tokenAccountAddress`),
+        // @ts-ignore
+        get(this.wallet.tokenAccounts, `${this.toCoin1.mintAddress}.tokenAccountAddress`),
+        amountIncreased,
+        '0'
+      )
+      .then((txid) => {
+        this.$notify.info({
+          key,
+          message: 'Transaction has been sent',
+          description: (h: any) =>
+            h('div', [
+              'Confirmation is in progress.  Check your transaction on ',
+              h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+            ])
+        })
+
+        const description = `Swap ${amountIncreased} ${this.toCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin1?.symbol}`
+        this.$accessor.transaction.sub({ txid, description })
+      })
+      .catch((error) => {
+        this.$notify.error({
+          key,
+          message: 'Swap failed',
+          description: error.message
+        })
+      })
+      .finally(() => {
+        this.swaping = false
+      })
+    },
     placeOrder() {
       this.swaping = true
 
@@ -1272,9 +1379,11 @@ export default Vue.extend({
           .finally(() => {
             this.swaping = false
           })
-      } else if (this.best_endpoint === 'Raydium Pool' && this.ammId) {
+      } 
+      else if (this.best_endpoint === 'Raydium Pool' && this.ammId) {
+
         const poolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
-        swap(
+        raydiumSwap(
           this.$web3,
           // @ts-ignore
           this.$wallet,
@@ -1290,32 +1399,33 @@ export default Vue.extend({
           this.fromCoinAmount,
           this.best_toCoinWithSlippage
         )
-          .then((txid) => {
-            this.$notify.info({
-              key,
-              message: 'Transaction has been sent',
-              description: (h: any) =>
-                h('div', [
-                  'Confirmation is in progress.  Check your transaction on ',
-                  h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
-                ])
-            })
+        .then((result) => {
+          const txid = result.tx
+          this.$notify.info({
+            key,
+            message: 'Transaction has been sent',
+            description: (h: any) =>
+              h('div', [
+                'Confirmation is in progress.  Check your transaction on ',
+                h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+              ])
+          })
 
-            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin?.symbol}`
-            this.$accessor.transaction.sub({ txid, description })
+          const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin?.symbol}`
+          this.$accessor.transaction.sub({ txid, description })
+
+          this.doStableSwap(result.amountIncreased)
+        })
+        .catch((error) => {
+          this.$notify.error({
+            key,
+            message: 'Swap failed',
+            description: error.message
           })
-          .catch((error) => {
-            this.$notify.error({
-              key,
-              message: 'Swap failed',
-              description: error.message
-            })
-          })
-          .finally(() => {
-            this.swaping = false
-          })
-      } else {
-        place(
+          this.swaping = false
+        })
+      } else if(this.best_endpoint === 'Serum Dex') {
+        serumPlace(
           this.$web3,
           // @ts-ignore
           this.$wallet,
@@ -1333,30 +1443,32 @@ export default Vue.extend({
           this.fromCoinAmount,
           this.setting.slippage
         )
-          .then((txid) => {
-            this.$notify.info({
-              key,
-              message: 'Transaction has been sent',
-              description: (h: any) =>
-                h('div', [
-                  'Confirmation is in progress.  Check your transaction on ',
-                  h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
-                ])
-            })
+        .then((result) => {
+          const txid = result.tx
+          this.$notify.info({
+            key,
+            message: 'Transaction has been sent',
+            description: (h: any) =>
+              h('div', [
+                'Confirmation is in progress.  Check your transaction on ',
+                h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+              ])
+          })
+          const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin?.symbol}`
+          this.$accessor.transaction.sub({ txid, description })
+          
+          this.doStableSwap(result.amountIncreased)
 
-            const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_toCoinAmount} ${this.toCoin?.symbol}`
-            this.$accessor.transaction.sub({ txid, description })
+        })
+        .catch((error) => {
+          this.$notify.error({
+            key,
+            message: 'Swap failed',
+            description: error.message
           })
-          .catch((error) => {
-            this.$notify.error({
-              key,
-              message: 'Swap failed',
-              description: error.message
-            })
-          })
-          .finally(() => {
-            this.swaping = false
-          })
+          this.swaping = false
+        })
+
       }
     },
 

@@ -1,5 +1,6 @@
-import lessToJson from 'less-to-json'
 import path from 'path'
+
+import lessToJson from 'less-to-json'
 
 const lessVariables = lessToJson('src/styles/variables.less')
 
@@ -20,7 +21,7 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'Raydium',
+    title: 'Atlas Cross-Chain Swap',
     htmlAttrs: {
       lang: 'en'
     },

@@ -94,6 +94,43 @@ export async function createTokenAccountIfNotExist(
   return publicKey
 }
 
+export async function createAssociatedTokenAccountIfNotExistEx(
+  account: string | undefined | null,
+  owner: PublicKey,
+  mintAddress: string,
+
+  transaction: TransactionInstruction[],
+  atas: string[] = []
+) {
+  let publicKey
+  if (account) {
+    publicKey = new PublicKey(account)
+  }
+
+  const mint = new PublicKey(mintAddress)
+  // @ts-ignore without ts ignore, yarn build will failed
+  const ata = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint, owner, true)
+
+  if (
+    (!publicKey || !ata.equals(publicKey)) &&
+    mintAddress !== TOKENS.WSOL.mintAddress &&
+    !atas.includes(ata.toBase58())
+  ) {
+    transaction.push(
+      Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        mint,
+        ata,
+        owner,
+        owner
+      )
+    )
+    atas.push(ata.toBase58())
+  }
+
+  return ata
+}
 export async function createAssociatedTokenAccountIfNotExist(
   account: string | undefined | null,
   owner: PublicKey,

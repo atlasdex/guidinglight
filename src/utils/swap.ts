@@ -1,11 +1,7 @@
 // @ts-ignore
 import { nu64, struct, u8 } from 'buffer-layout';
 
-import { TokenAmount } from '@/utils/safe-math';
-import {
-  createAssociatedTokenAccountIfNotExist, createProgramAccountIfNotExist,
-  createTokenAccountIfNotExist, mergeTransactions, sendTransaction
-} from '@/utils/web3';
+
 import { _OPEN_ORDERS_LAYOUT_V2, Market, OpenOrders } from '@project-serum/serum/lib/market';
 import { closeAccount } from '@project-serum/serum/lib/token-instructions';
 import {
@@ -16,7 +12,12 @@ import {
 import { MEMO_PROGRAM_ID, SERUM_PROGRAM_ID_V3, TOKEN_PROGRAM_ID } from './ids';
 import { getBigNumber } from './layouts';
 // eslint-disable-next-line
-import { getTokenByMintAddress, NATIVE_SOL, TOKENS } from './tokens';
+import { getTokenBalance, getTokenByMintAddress, NATIVE_SOL, TOKENS } from './tokens';
+import { TokenAmount } from '@/utils/safe-math';
+import {
+  createAssociatedTokenAccountIfNotExist, createProgramAccountIfNotExist,
+  createTokenAccountIfNotExist, mergeTransactions, sendTransaction
+} from '@/utils/web3';
 
 export function getOutAmount(
   market: any,
@@ -381,8 +382,26 @@ export async function swap(
       })
     )
   }
+  const oriBalance = wrappedSolAccount2 ? 
+                (await connection.getBalance(wallet.publicKey)): 
+                (await getTokenBalance(connection, newToTokenAccount.toString()));
 
-  return await sendTransaction(connection, wallet, transaction, signers)
+  const tx = await sendTransaction(connection, wallet, transaction, signers)
+
+  let newBalance = 0
+  while(oriBalance >= newBalance)
+  {
+    newBalance = wrappedSolAccount2 ? 
+              (await connection.getBalance(wallet.publicKey)): 
+              (await getTokenBalance(connection, newToTokenAccount.toString()));
+  }
+
+  const amountIncreased = (new TokenAmount(newBalance - oriBalance, to.decimals)).fixed()
+
+  return {
+      tx,
+      amountIncreased
+    }
 }
 
 export async function place(
@@ -516,10 +535,28 @@ export async function place(
     referrerQuoteWallet
   )
 
-  return await sendTransaction(connection, wallet, mergeTransactions([transaction, settleTransactions.transaction]), [
-    ...signers,
-    ...settleTransactions.signers
-  ])
+  const oriBalance = (toMint === TOKENS.WSOL.mintAddress) ? (await connection.getBalance(wallet.publicKey)): (await getTokenBalance(connection, newToTokenAccount.toString()));
+
+  const tx = await sendTransaction(connection, wallet, mergeTransactions([transaction, settleTransactions.transaction]), [
+          ...signers,
+          ...settleTransactions.signers
+        ])
+
+  let newBalance = 0
+  while(oriBalance >= newBalance)
+  {
+    newBalance = (toMint === TOKENS.WSOL.mintAddress) ?  (await connection.getBalance(wallet.publicKey)): (await getTokenBalance(connection, newToTokenAccount.toString()));
+  }
+  const delta = newBalance - oriBalance
+  console.log("Increased ", delta)
+
+  const toToken = Object.values(TOKENS).find((item)=>item.mintAddress === toMint)
+  const amountIncreased = (new TokenAmount(delta, toToken.decimals)).fixed()
+
+  return {
+    tx,
+    amountIncreased
+  }
 }
 
 export function swapInstruction(

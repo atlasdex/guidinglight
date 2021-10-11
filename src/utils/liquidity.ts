@@ -1,6 +1,11 @@
 import BigNumber from 'bignumber.js';
 // @ts-ignore
 import { nu64, struct, u8 } from 'buffer-layout';
+import { publicKey, u128, u64 } from '@project-serum/borsh';
+import { closeAccount } from '@project-serum/serum/lib/token-instructions';
+import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+
+import { getBigNumber, MINT_LAYOUT } from './layouts';
 
 import { TOKEN_PROGRAM_ID } from '@/utils/ids';
 import {
@@ -13,11 +18,6 @@ import {
   commitment, createAssociatedTokenAccountIfNotExist, createTokenAccountIfNotExist,
   getMultipleAccounts, sendTransaction
 } from '@/utils/web3';
-import { publicKey, u128, u64 } from '@project-serum/borsh';
-import { closeAccount } from '@project-serum/serum/lib/token-instructions';
-import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
-
-import { getBigNumber, MINT_LAYOUT } from './layouts';
 
 export { getLpMintByTokenMintAddresses, getPoolByLpMintAddress, getPoolByTokenMintAddresses, canWrap }
 
@@ -752,7 +752,7 @@ export async function getLpMintInfo(conn: any, mintAddress: string, coin: any, p
     const mintAll = await getMultipleAccounts(conn, [new PublicKey(mintAddress)], commitment)
     if (mintAll !== null) {
       const data = Buffer.from(mintAll[0]?.account.data ?? '')
-      const mintLayoutData = MINT_LAYOUT.decode(data)
+      const mintLayoutData:any = MINT_LAYOUT.decode(data)
       lpInfo = {
         symbol: 'unknown',
         name: 'unknown',
@@ -787,7 +787,7 @@ export async function getLpMintListDecimals(
   for (let mintIndex = 0; mintIndex < mintAll.length; mintIndex += 1) {
     const itemMint = mintAll[mintIndex]
     if (itemMint) {
-      const mintLayoutData = MINT_LAYOUT.decode(Buffer.from(itemMint.account.data))
+      const mintLayoutData:any = MINT_LAYOUT.decode(Buffer.from(itemMint.account.data))
       reLpInfoDict[mintList[mintIndex].toString()] = mintLayoutData.decimals
     }
   }

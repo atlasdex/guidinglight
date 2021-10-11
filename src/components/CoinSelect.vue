@@ -109,10 +109,11 @@ import Vue from 'vue'
 import { mapState } from 'vuex'
 import { Modal, Icon } from 'ant-design-vue'
 
-import { TOKENS, TokenInfo, NATIVE_SOL, TOKENS_TAGS } from '@/utils/tokens'
 import { cloneDeep } from 'lodash-es'
 import { PublicKey } from '@solana/web3.js'
 // import { getFilteredProgramAccounts } from '@/utils/web3'
+import { TOKENS, TokenInfo, NATIVE_SOL, TOKENS_TAGS } from '@/utils/tokens'
+
 import { MINT_LAYOUT } from '@/utils/layouts'
 
 // fix: Failed to resolve directive: ant-portal
@@ -312,12 +313,13 @@ export default Vue.extend({
           try {
             const acc = await this.$web3.getAccountInfo(new PublicKey(keyword))
             if (acc != null) {
-              const mint = MINT_LAYOUT.decode(acc.data)
+              const mint:any = MINT_LAYOUT.decode(acc.data)
               if (mint.initialized === true && this.tokenList.length === 0) {
                 TOKENS[this.keyword + 'userSearch'] = {
                   symbol: 'unknown',
                   name: 'unknown',
                   mintAddress: this.keyword,
+                  // @ts-ignore
                   decimals: mint.decimals,
                   cache: true,
                   tags: []

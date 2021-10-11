@@ -54,37 +54,34 @@ async function fromEth(
   recipientAddress: Uint8Array,
   isNative: boolean
 ) {
-  try {
-    const amountParsed = parseUnits(amount, decimals);
-    const receipt = isNative
-      ? await transferFromEthNative(
-          ETH_TOKEN_BRIDGE_ADDRESS,
-          signer,
-          amountParsed,
-          recipientChain,
-          recipientAddress
-        )
-      : await transferFromEth(
-          ETH_TOKEN_BRIDGE_ADDRESS,
-          signer,
-          tokenAddress,
-          amountParsed,
-          recipientChain,
-          recipientAddress
-        );
-    const sequence = parseSequenceFromLogEth(receipt, ETH_BRIDGE_ADDRESS);
-    const emitterAddress = getEmitterAddressEth(ETH_TOKEN_BRIDGE_ADDRESS);
+  const amountParsed = parseUnits(amount, decimals);
+  const receipt = isNative
+    ? await transferFromEthNative(
+        ETH_TOKEN_BRIDGE_ADDRESS,
+        signer,
+        amountParsed,
+        recipientChain,
+        recipientAddress
+      )
+    : await transferFromEth(
+        ETH_TOKEN_BRIDGE_ADDRESS,
+        signer,
+        tokenAddress,
+        amountParsed,
+        recipientChain,
+        recipientAddress
+      );
+  const sequence = parseSequenceFromLogEth(receipt, ETH_BRIDGE_ADDRESS);
+  const emitterAddress = getEmitterAddressEth(ETH_TOKEN_BRIDGE_ADDRESS);
 
-    const { vaaBytes } = await getSignedVAAWithRetry(
-      CHAIN_ID_ETH,
-      emitterAddress,
-      sequence.toString()
-    );
+  const { vaaBytes } = await getSignedVAAWithRetry(
+    CHAIN_ID_ETH,
+    emitterAddress,
+    sequence.toString()
+  );
 
-    return uint8ArrayToHex(vaaBytes)
-  } catch (e) {
-    console.error(e);
-  }
+  return uint8ArrayToHex(vaaBytes)
+
 }
 
 async function fromSolana(
@@ -99,46 +96,41 @@ async function fromSolana(
   originAddressStr?: string,
   originChain?: ChainId
 ) {
-  try {
-    const connection = new Connection(SOLANA_HOST, "confirmed");
-    const amountParsed = parseUnits(amount, decimals).toBigInt();
-    const originAddress = originAddressStr
-      ? zeroPad(hexToUint8Array(originAddressStr), 32)
-      : undefined;
-    const transaction = await transferFromSolana(
-      connection,
-      SOL_BRIDGE_ADDRESS,
-      SOL_TOKEN_BRIDGE_ADDRESS,
-      payerAddress,
-      fromAddress,
-      mintAddress,
-      amountParsed,
-      targetAddress,
-      targetChain,
-      originAddress,
-      originChain
-    );
-    const txid = await signSendAndConfirm(wallet, connection, transaction);
+  const connection = new Connection(SOLANA_HOST, "confirmed");
+  const amountParsed = parseUnits(amount, decimals).toBigInt();
+  const originAddress = originAddressStr
+    ? zeroPad(hexToUint8Array(originAddressStr), 32)
+    : undefined;
+  const transaction = await transferFromSolana(
+    connection,
+    SOL_BRIDGE_ADDRESS,
+    SOL_TOKEN_BRIDGE_ADDRESS,
+    payerAddress,
+    fromAddress,
+    mintAddress,
+    amountParsed,
+    targetAddress,
+    targetChain,
+    originAddress,
+    originChain
+  );
+  const txid = await signSendAndConfirm(wallet, connection, transaction);
 
-    const info = await connection.getTransaction(txid);
-    if (!info) {
-      throw new Error("An error occurred while fetching the transaction info");
-    }
-    const sequence = parseSequenceFromLogSolana(info);
-    const emitterAddress = await getEmitterAddressSolana(
-      SOL_TOKEN_BRIDGE_ADDRESS
-    );
-
-    const { vaaBytes } = await getSignedVAAWithRetry(
-      CHAIN_ID_SOLANA,
-      emitterAddress,
-      sequence
-    );
-    return uint8ArrayToHex(vaaBytes)
-
-  } catch (e) {
-    console.error(e);
+  const info = await connection.getTransaction(txid);
+  if (!info) {
+    throw new Error("An error occurred while fetching the transaction info");
   }
+  const sequence = parseSequenceFromLogSolana(info);
+  const emitterAddress = await getEmitterAddressSolana(
+    SOL_TOKEN_BRIDGE_ADDRESS
+  );
+
+  const { vaaBytes } = await getSignedVAAWithRetry(
+    CHAIN_ID_SOLANA,
+    emitterAddress,
+    sequence
+  );
+  return uint8ArrayToHex(vaaBytes)
 }
   
 async function fromTerra(
@@ -149,44 +141,39 @@ async function fromTerra(
   targetChain: ChainId,
   targetAddress: Uint8Array
 ) {
-  try {
-    const amountParsed = parseUnits(amount, decimals).toString();
-    const msgs = await transferFromTerra(
-      wallet.terraAddress,
-      TERRA_TOKEN_BRIDGE_ADDRESS,
-      asset,
-      amountParsed,
-      targetChain,
-      targetAddress
-    );
-    const result = await wallet.post({
-      msgs: [...msgs],
-      memo: "Wormhole - Initiate Transfer",
-    });
-    console.log(result);
-    const info = await waitForTerraExecution(result);
-    console.log(info);
+  const amountParsed = parseUnits(amount, decimals).toString();
+  const msgs = await transferFromTerra(
+    wallet.terraAddress,
+    TERRA_TOKEN_BRIDGE_ADDRESS,
+    asset,
+    amountParsed,
+    targetChain,
+    targetAddress
+  );
+  const result = await wallet.post({
+    msgs: [...msgs],
+    memo: "Wormhole - Initiate Transfer",
+  });
+  console.log(result);
+  const info = await waitForTerraExecution(result);
+  console.log(info);
 
-    const sequence = parseSequenceFromLogTerra(info);
-    console.log(sequence);
-    if (!sequence) {
-      throw new Error("Sequence not found");
-    }
-    const emitterAddress = await getEmitterAddressTerra(
-      TERRA_TOKEN_BRIDGE_ADDRESS
-    );
-    console.log(emitterAddress);
-
-    const { vaaBytes } = await getSignedVAAWithRetry(
-      CHAIN_ID_TERRA,
-      emitterAddress,
-      sequence
-    );
-    return uint8ArrayToHex(vaaBytes)
-  } catch (e) {
-    console.error(e);
-
+  const sequence = parseSequenceFromLogTerra(info);
+  console.log(sequence);
+  if (!sequence) {
+    throw new Error("Sequence not found");
   }
+  const emitterAddress = await getEmitterAddressTerra(
+    TERRA_TOKEN_BRIDGE_ADDRESS
+  );
+  console.log(emitterAddress);
+
+  const { vaaBytes } = await getSignedVAAWithRetry(
+    CHAIN_ID_TERRA,
+    emitterAddress,
+    sequence
+  );
+  return uint8ArrayToHex(vaaBytes)
 }
 
 export async function crossTransfer(
@@ -274,14 +261,10 @@ async function toEth(
   signedVAA: Uint8Array,
   isNative: boolean
 ) {
-  try {
-    const receipt = isNative
-      ? await redeemOnEthNative(ETH_TOKEN_BRIDGE_ADDRESS, signer, signedVAA)
-      : await redeemOnEth(ETH_TOKEN_BRIDGE_ADDRESS, signer, signedVAA);
-    return { id: receipt.transactionHash, block: receipt.blockNumber }
-  } catch (e) {
-    console.log(e)
-  }
+  const receipt = isNative
+    ? await redeemOnEthNative(ETH_TOKEN_BRIDGE_ADDRESS, signer, signedVAA)
+    : await redeemOnEth(ETH_TOKEN_BRIDGE_ADDRESS, signer, signedVAA);
+  return { id: receipt.transactionHash, block: receipt.blockNumber }
 }
 
 async function toSolana(
@@ -289,52 +272,44 @@ async function toSolana(
   payerAddress: string, // TODO: we may not need this since we have wallet
   signedVAA: Uint8Array
 ) {
-  try {
-    if (!wallet.signTransaction) {
-      throw new Error("wallet.signTransaction is undefined");
-    }
-    const connection = new Connection(SOLANA_HOST, "confirmed");
-    await postVaaSolana(
-      connection,
-      wallet.signTransaction,
-      SOL_BRIDGE_ADDRESS,
-      payerAddress,
-      Buffer.from(signedVAA)
-    );
-    // TODO: how do we retry in between these steps
-    const transaction = await redeemOnSolana(
-      connection,
-      SOL_BRIDGE_ADDRESS,
-      SOL_TOKEN_BRIDGE_ADDRESS,
-      payerAddress,
-      signedVAA
-    );
-    const txid = await signSendAndConfirm(wallet, connection, transaction);
-    // TODO: didn't want to make an info call we didn't need, can we get the block without it by modifying the above call?
-    return { id: txid, block: 1 }
-  } catch (e) {
-    console.log(e)
+  if (!wallet.signTransaction) {
+    throw new Error("wallet.signTransaction is undefined");
   }
+  const connection = new Connection(SOLANA_HOST, "confirmed");
+  await postVaaSolana(
+    connection,
+    wallet.signTransaction,
+    SOL_BRIDGE_ADDRESS,
+    payerAddress,
+    Buffer.from(signedVAA)
+  );
+  // TODO: how do we retry in between these steps
+  const transaction = await redeemOnSolana(
+    connection,
+    SOL_BRIDGE_ADDRESS,
+    SOL_TOKEN_BRIDGE_ADDRESS,
+    payerAddress,
+    signedVAA
+  );
+  const txid = await signSendAndConfirm(wallet, connection, transaction);
+  // TODO: didn't want to make an info call we didn't need, can we get the block without it by modifying the above call?
+  return { id: txid, block: 1 }
 }
 
 async function toTerra(
   wallet: ConnectedWallet,
   signedVAA: Uint8Array
 ) {
-  try {
-    const msg = await redeemOnTerra(
-      TERRA_TOKEN_BRIDGE_ADDRESS,
-      wallet.terraAddress,
-      signedVAA
-    );
-    const result = await wallet.post({
-      msgs: [msg],
-      memo: "Wormhole - Complete Transfer",
-    });
-     return { id: result.result.txhash, block: result.result.height }
-  } catch (e) {
-    console.log(e)
-  }
+  const msg = await redeemOnTerra(
+    TERRA_TOKEN_BRIDGE_ADDRESS,
+    wallet.terraAddress,
+    signedVAA
+  );
+  const result = await wallet.post({
+    msgs: [msg],
+    memo: "Wormhole - Complete Transfer",
+  });
+    return { id: result.result.txhash, block: result.result.height }
 }
 
 export async function redeemToken(
@@ -344,7 +319,6 @@ export async function redeemToken(
   solanaWallet:any,
   terraWallet:any,
 ){
-  console.log(signer)
   const solPK = solanaWallet?.publicKey;
   let res = null
   if (targetChain === CHAIN_ID_ETH && !!signer && signedVAA) {

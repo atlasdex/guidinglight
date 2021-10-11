@@ -2,7 +2,7 @@
   <div>
     <Button v-if="!wallet.connected" ghost @click="$accessor.wallet.openModal">
       <Icon type="wallet" />
-      Connect
+      Connect SPL Wallet
     </Button>
     <Button v-else ghost @click="$accessor.wallet.openModal">
       <Icon type="wallet" />

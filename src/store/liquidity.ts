@@ -115,7 +115,7 @@ export const actions = actionTree(
 
       const lpMintAddressList: string[] = []
       ammAll.forEach((item) => {
-        const ammLayout = AMM_INFO_LAYOUT_V4.decode(Buffer.from(item.accountInfo.data))
+        const ammLayout:any = AMM_INFO_LAYOUT_V4.decode(Buffer.from(item.accountInfo.data))
         if (
           ammLayout.pcMintAddress.toString() === ammLayout.serumMarket.toString() ||
           ammLayout.lpMintAddress.toString() === '11111111111111111111111111111111'
@@ -127,7 +127,7 @@ export const actions = actionTree(
       const lpMintListDecimls = await getLpMintListDecimals(conn, lpMintAddressList)
 
       for (let indexAmmInfo = 0; indexAmmInfo < ammAll.length; indexAmmInfo += 1) {
-        const ammInfo = AMM_INFO_LAYOUT_V4.decode(Buffer.from(ammAll[indexAmmInfo].accountInfo.data))
+        const ammInfo:any = AMM_INFO_LAYOUT_V4.decode(Buffer.from(ammAll[indexAmmInfo].accountInfo.data))
         if (
           !Object.keys(lpMintListDecimls).includes(ammInfo.lpMintAddress.toString()) ||
           ammInfo.pcMintAddress.toString() === ammInfo.serumMarket.toString() ||
@@ -281,14 +281,14 @@ export const actions = actionTree(
 
             switch (key) {
               case 'poolCoinTokenAccount': {
-                const parsed = ACCOUNT_LAYOUT.decode(data)
+                const parsed:any = ACCOUNT_LAYOUT.decode(data)
                 // quick fix: Number can only safely store up to 53 bits
                 poolInfo.coin.balance.wei = poolInfo.coin.balance.wei.plus(getBigNumber(parsed.amount))
 
                 break
               }
               case 'poolPcTokenAccount': {
-                const parsed = ACCOUNT_LAYOUT.decode(data)
+                const parsed:any = ACCOUNT_LAYOUT.decode(data)
 
                 poolInfo.pc.balance.wei = poolInfo.pc.balance.wei.plus(getBigNumber(parsed.amount))
 
@@ -305,7 +305,7 @@ export const actions = actionTree(
                 break
               }
               case 'ammId': {
-                let parsed
+                let parsed:any
                 if (version === 2) {
                   parsed = AMM_INFO_LAYOUT.decode(data)
                 } else if (version === 3) {
@@ -329,7 +329,7 @@ export const actions = actionTree(
               }
               // getLpSupply
               case 'lpMintAddress': {
-                const parsed = MINT_LAYOUT.decode(data)
+                const parsed:any = MINT_LAYOUT.decode(data)
 
                 poolInfo.lp.totalSupply = new TokenAmount(getBigNumber(parsed.supply), poolInfo.lp.decimals)
 

@@ -399,9 +399,9 @@ export async function swap(
   const amountIncreased = (new TokenAmount(newBalance - oriBalance, to.decimals)).fixed()
 
   return {
-      tx,
-      amountIncreased
-    }
+    tx,
+    amountIncreased
+  }
 }
 
 export async function place(

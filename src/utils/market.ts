@@ -175,7 +175,7 @@ export async function createAmm(
 
   const multipleInfo = await getMultipleAccounts(conn, [lpMintAddress], commitment)
   if (multipleInfo.length > 0 && multipleInfo[0] !== null) {
-    const tempLpMint = MINT_LAYOUT.decode(multipleInfo[0]?.account.data)
+    const tempLpMint:any = MINT_LAYOUT.decode(multipleInfo[0]?.account.data)
     if (getBigNumber(tempLpMint.supply) === 0) {
       accountSuccessFlag = true
     } else {
@@ -525,7 +525,7 @@ export function preInitialize(
   poolTempLpTokenAccount: PublicKey,
   market: PublicKey,
   owner: PublicKey,
-  nonce: u8
+  nonce: number
 ): TransactionInstruction {
   const dataLayout = struct([u8('instruction'), u8('nonce')])
 

@@ -10,7 +10,7 @@ import * as liquidity from './liquidity'
 import * as farm from './farm'
 import * as ido from './ido'
 import * as transaction from './transaction'
-
+export const strict = false
 function enquireScreen(call: Function) {
   const handler = {
     match() {

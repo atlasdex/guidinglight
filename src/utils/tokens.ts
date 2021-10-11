@@ -73,7 +73,7 @@ export function getTokenSymbolByMint(mint: string) {
 export async function getTokenBalance(connection:any, tokenAccount:string){
   const info = await connection.getAccountInfo(new PublicKey(tokenAccount), commitment)
   const data = Buffer.from(info.data)
-  const parsed = ACCOUNT_LAYOUT.decode(data)
+  const parsed:any = ACCOUNT_LAYOUT.decode(data)
   return parsed.amount
 }
 export interface Tokens {

@@ -1,6 +1,8 @@
 import { getterTree, mutationTree, actionTree } from 'typed-vuex'
 import { cloneDeep } from 'lodash-es'
 
+import { PublicKey } from '@solana/web3.js'
+
 import { TOKENS } from '@/utils/tokens'
 import { TokenAmount } from '@/utils/safe-math'
 import { commitment, getMultipleAccounts } from '@/utils/web3'
@@ -19,7 +21,6 @@ import {
   IDO_LOTTERY_SNAPSHOT_DATA_LAYOUT,
   IdoLotteryUserInfo
 } from '@/utils/ido'
-import { PublicKey } from '@solana/web3.js'
 import logger from '@/utils/logger'
 import { getUnixTs } from '@/utils'
 import { getBigNumber } from '@/utils/layouts'
@@ -101,7 +102,7 @@ export const actions = actionTree(
           const pool = idoPools[poolIndex]
 
           if (pool.version === 3) {
-            const decoded = IDO_LOTTERY_POOL_INFO_LAYOUT.decode(data)
+            const decoded:any = IDO_LOTTERY_POOL_INFO_LAYOUT.decode(data)
             pool.info = {
               status: getBigNumber(decoded.status),
               nonce: getBigNumber(decoded.nonce),
@@ -136,7 +137,7 @@ export const actions = actionTree(
               poolSeedId: decoded.poolSeedId
             } as IdoLotteryPoolInfo
           } else {
-            const decoded = IDO_POOL_INFO_LAYOUT.decode(data)
+            const decoded:any = IDO_POOL_INFO_LAYOUT.decode(data)
             pool.info = {
               startTime: getBigNumber(decoded.startTime),
               endTime: getBigNumber(decoded.endTime),
@@ -213,14 +214,14 @@ export const actions = actionTree(
                   pool.userInfo = {} as IdoUserInfo
                 }
                 if (pool.version === 3) {
-                  const decoded = IDO_LOTTERY_USER_INFO_LAYOUT.decode(data)
+                  const decoded:any = IDO_LOTTERY_USER_INFO_LAYOUT.decode(data)
                   ;(pool.userInfo as IdoLotteryUserInfo).quoteTokenDeposited = getBigNumber(decoded.quoteTokenDeposited)
                   ;(pool.userInfo as IdoLotteryUserInfo).quoteTokenWithdrawn = getBigNumber(decoded.quoteTokenWithdrawn)
                   ;(pool.userInfo as IdoLotteryUserInfo).baseTokenWithdrawn = getBigNumber(decoded.baseTokenWithdrawn)
                   ;(pool.userInfo as IdoLotteryUserInfo).lotteryBeginNumber = getBigNumber(decoded.lotteryBeginNumber)
                   ;(pool.userInfo as IdoLotteryUserInfo).lotteryEndNumber = getBigNumber(decoded.lotteryEndNumber)
                 }
-                const decoded = IDO_USER_INFO_LAYOUT.decode(data)
+                const decoded:any = IDO_USER_INFO_LAYOUT.decode(data)
                 ;(pool.userInfo as IdoUserInfo).deposited = new TokenAmount(
                   getBigNumber(decoded.quoteTokenDeposited),
                   pool.quote.decimals
@@ -232,7 +233,7 @@ export const actions = actionTree(
                   pool.userInfo = {} as IdoLotteryUserInfo
                 }
                 if (pool.version === 3) {
-                  const decoded = IDO_LOTTERY_SNAPSHOT_DATA_LAYOUT.decode(data)
+                  const decoded:any = IDO_LOTTERY_SNAPSHOT_DATA_LAYOUT.decode(data)
                   ;(pool.userInfo as IdoLotteryUserInfo).eligibleTicketAmount = getBigNumber(
                     decoded.eligibleTicketAmount
                   )

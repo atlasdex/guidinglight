@@ -3,6 +3,8 @@
     <NuxtLink to="/"><img class="logo" src="@/assets/icons/logo-text.svg" /></NuxtLink>
 
     <div class="fs-container">
+      <MetaMask/>
+      &nbsp;
       <Wallet />
       <div
         v-if="isMobile"

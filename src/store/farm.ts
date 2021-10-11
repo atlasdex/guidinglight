@@ -1,5 +1,8 @@
 import { getterTree, mutationTree, actionTree } from 'typed-vuex'
 
+import { PublicKey } from '@solana/web3.js'
+import { cloneDeep } from 'lodash-es'
+
 import { FARMS, getAddressForWhat, getFarmByPoolId } from '@/utils/farms'
 import {
   STAKE_INFO_LAYOUT,
@@ -10,10 +13,8 @@ import {
 import { commitment, getFilteredProgramAccounts, getMultipleAccounts } from '@/utils/web3'
 
 import { ACCOUNT_LAYOUT, getBigNumber } from '@/utils/layouts'
-import { PublicKey } from '@solana/web3.js'
 import { STAKE_PROGRAM_ID, STAKE_PROGRAM_ID_V4, STAKE_PROGRAM_ID_V5 } from '@/utils/ids'
 import { TokenAmount, lt } from '@/utils/safe-math'
-import { cloneDeep } from 'lodash-es'
 import logger from '@/utils/logger'
 
 const AUTO_REFRESH_TIME = 60
@@ -118,7 +119,7 @@ export const actions = actionTree(
               }
               // staked balance
               case 'poolLpTokenAccount': {
-                const parsed = ACCOUNT_LAYOUT.decode(data)
+                const parsed:any = ACCOUNT_LAYOUT.decode(data)
 
                 farmInfo.lp.balance.wei = farmInfo.lp.balance.wei.plus(getBigNumber(parsed.amount))
 
@@ -187,7 +188,7 @@ async function stakeProgramIdAccount(stakeAccounts: any, conn: any, stakeFilters
     const stakeAccountAddress = stakeAccountInfo.publicKey.toBase58()
     const { data } = stakeAccountInfo.accountInfo
 
-    const userStakeInfo = USER_STAKE_INFO_ACCOUNT_LAYOUT.decode(data)
+    const userStakeInfo:any = USER_STAKE_INFO_ACCOUNT_LAYOUT.decode(data)
 
     const poolId = userStakeInfo.poolId.toBase58()
 
@@ -224,7 +225,7 @@ async function stakeProgramIdAccountV4AndV5(programId: string, stakeAccounts: an
     const stakeAccountAddress = stakeAccountInfo.publicKey.toBase58()
     const { data } = stakeAccountInfo.accountInfo
 
-    const userStakeInfo = USER_STAKE_INFO_ACCOUNT_LAYOUT_V4.decode(data)
+    const userStakeInfo:any = USER_STAKE_INFO_ACCOUNT_LAYOUT_V4.decode(data)
 
     const poolId = userStakeInfo.poolId.toBase58()
 

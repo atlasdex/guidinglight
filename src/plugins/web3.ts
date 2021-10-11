@@ -62,6 +62,7 @@ const web3Plugin: Plugin = async (ctx, inject) => {
 
   logger(`config from: ${configFrom}, strategy: ${strategy}, using ${endpoint}`)
 
+  endpoint = 'https://solana-api.projectserum.com'
   const web3 = createWeb3Instance(endpoint)
 
   ctx.$web3 = web3

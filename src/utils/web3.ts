@@ -423,7 +423,7 @@ function throwIfNull<T>(value: T | null, message = 'account not found'): T {
 
 export async function getMintDecimals(connection: Connection, mint: PublicKey): Promise<number> {
   const { data } = throwIfNull(await connection.getAccountInfo(mint), 'mint not found')
-  const { decimals } = MINT_LAYOUT.decode(data)
+  const { decimals } = MINT_LAYOUT.decode(data) as any
   return decimals
 }
 

@@ -6,7 +6,7 @@ import { struct,  u8} from '@project-serum/borsh'
 
 import { getBigNumber } from "@/utils/layouts";
 import { TokenAmount } from "@/utils/safe-math";
-import { NATIVE_SOL, TOKENS, getTokenByMintAddress, TokenInfo, Tokens } from "@/utils/tokens";
+import { getTokenBalance, NATIVE_SOL, TOKENS, getTokenByMintAddress, TokenInfo, Tokens } from "@/utils/tokens";
 import { createAssociatedTokenAccountIfNotExist, createTokenAccountIfNotExist, sendTransaction } from "@/utils/web3";
 
 
@@ -233,6 +233,24 @@ export async function stableSwap(
         })
       )
     }
-  
-    return await sendTransaction(connection, wallet, transaction, signers)
+    const oriBalance = wrappedSolAccount2 ? 
+                (await connection.getBalance(wallet.publicKey)): 
+                (await getTokenBalance(connection, newToTokenAccount.toString()));
+
+  const tx = await sendTransaction(connection, wallet, transaction, signers)
+
+  let newBalance = 0
+  while(oriBalance >= newBalance)
+  {
+    newBalance = wrappedSolAccount2 ? 
+              (await connection.getBalance(wallet.publicKey)): 
+              (await getTokenBalance(connection, newToTokenAccount.toString()));
+  }
+
+  const amountIncreased = (new TokenAmount(newBalance - oriBalance, to.decimals)).fixed()
+
+  return {
+    txid:tx,
+    amountIncreased
+  }
 }

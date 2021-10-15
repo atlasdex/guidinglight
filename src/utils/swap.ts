@@ -223,7 +223,7 @@ export function forecastSell(market: any, orderBook: any, coinIn: any, slippage:
 
 export async function wrap(
   axios: any,
-  connection: Connection,
+  // connection: Connection,
   wallet: any,
   fromCoinMint: string,
   toCoinMint: string,
@@ -267,7 +267,11 @@ export async function wrap(
   transaction.add(transfer(newFromTokenAccount, new PublicKey(address), owner, getBigNumber(amountOut.toWei())))
   transaction.add(memoInstruction(newToTokenAccount.toString()))
 
-  return await sendTransaction(connection, wallet, transaction, signers)
+  // return await sendTransaction(connection, wallet, transaction, signers)
+  return {
+    transaction, 
+    signers
+  }
 }
 
 export async function swap(
@@ -382,26 +386,30 @@ export async function swap(
       })
     )
   }
-  const oriBalance = wrappedSolAccount2 ? 
-                (await connection.getBalance(wallet.publicKey)): 
-                (await getTokenBalance(connection, newToTokenAccount.toString()));
-
-  const tx = await sendTransaction(connection, wallet, transaction, signers)
-
-  let newBalance = 0
-  while(oriBalance >= newBalance)
-  {
-    newBalance = wrappedSolAccount2 ? 
-              (await connection.getBalance(wallet.publicKey)): 
-              (await getTokenBalance(connection, newToTokenAccount.toString()));
-  }
-
-  const amountIncreased = (new TokenAmount(newBalance - oriBalance, to.decimals)).fixed()
-
   return {
-    tx,
-    amountIncreased
+    transaction,
+    signers
   }
+  // const oriBalance = wrappedSolAccount2 ? 
+  //               (await connection.getBalance(wallet.publicKey)): 
+  //               (await getTokenBalance(connection, newToTokenAccount.toString()));
+
+  // const tx = await sendTransaction(connection, wallet, transaction, signers)
+
+  // let newBalance = 0
+  // while(oriBalance >= newBalance)
+  // {
+  //   newBalance = wrappedSolAccount2 ? 
+  //             (await connection.getBalance(wallet.publicKey)): 
+  //             (await getTokenBalance(connection, newToTokenAccount.toString()));
+  // }
+
+  // const amountIncreased = (new TokenAmount(newBalance - oriBalance, to.decimals)).fixed()
+
+  // return {
+  //   tx,
+  //   amountIncreased
+  // }
 }
 
 export async function place(
@@ -466,7 +474,6 @@ export async function place(
       signers
     )
   }
-
   transaction.add(
     market.makePlaceOrderInstruction(connection, {
       owner,
@@ -474,16 +481,14 @@ export async function place(
       // @ts-ignore
       side: forecastConfig.side,
       price: forecastConfig.worstPrice,
-      size:
-        forecastConfig.side === 'buy'
-          ? parseFloat(forecastConfig.amountOut.toFixed(6))
-          : parseFloat(forecastConfig.maxInAllow.toFixed(6)),
+      size: forecastConfig.side === 'buy' ? 
+                      parseFloat(forecastConfig.amountOut.toFixed(6)) : 
+                      parseFloat(forecastConfig.maxInAllow.toFixed(6)),
       orderType: 'ioc',
       openOrdersAddressKey: openOrdersAddress
       // feeDiscountPubkey: useFeeDiscountPubkey
     })
   )
-
   if (wrappedSolAccount) {
     transaction.add(
       closeAccount({
@@ -535,28 +540,34 @@ export async function place(
     referrerQuoteWallet
   )
 
-  const oriBalance = (toMint === TOKENS.WSOL.mintAddress) ? (await connection.getBalance(wallet.publicKey)): (await getTokenBalance(connection, newToTokenAccount.toString()));
-
-  const tx = await sendTransaction(connection, wallet, mergeTransactions([transaction, settleTransactions.transaction]), [
-          ...signers,
-          ...settleTransactions.signers
-        ])
-
-  let newBalance = 0
-  while(oriBalance >= newBalance)
-  {
-    newBalance = (toMint === TOKENS.WSOL.mintAddress) ?  (await connection.getBalance(wallet.publicKey)): (await getTokenBalance(connection, newToTokenAccount.toString()));
-  }
-  const delta = newBalance - oriBalance
-  console.log("Increased ", delta)
-
-  const toToken = Object.values(TOKENS).find((item)=>item.mintAddress === toMint)
-  const amountIncreased = (new TokenAmount(delta, toToken.decimals)).fixed()
-
   return {
-    tx,
-    amountIncreased
+    transaction: mergeTransactions([transaction, settleTransactions.transaction]),
+    signers: [...signers, ...settleTransactions.signers],
+    amountEstimated: forecastConfig.amountOut
   }
+
+  // const oriBalance = (toMint === TOKENS.WSOL.mintAddress) ? (await connection.getBalance(wallet.publicKey)): (await getTokenBalance(connection, newToTokenAccount.toString()));
+
+  // const tx = await sendTransaction(connection, wallet, mergeTransactions([transaction, settleTransactions.transaction]), [
+  //         ...signers,
+  //         ...settleTransactions.signers
+  //       ])
+
+  // let newBalance = 0
+  // while(oriBalance >= newBalance)
+  // {
+  //   newBalance = (toMint === TOKENS.WSOL.mintAddress) ?  (await connection.getBalance(wallet.publicKey)): (await getTokenBalance(connection, newToTokenAccount.toString()));
+  // }
+  // const delta = newBalance - oriBalance
+  // console.log("Increased ", delta)
+
+  // const toToken = Object.values(TOKENS).find((item)=>item.mintAddress === toMint)
+  // const amountIncreased = (new TokenAmount(delta, toToken.decimals)).fixed()
+
+  // return {
+  //   tx,
+  //   amountIncreased
+  // }
 }
 
 export function swapInstruction(

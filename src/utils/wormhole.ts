@@ -189,6 +189,8 @@ export async function crossTransfer(
   terraWallet:any,
   sourceParsedTokenAccount:any
 ){
+  console.log("Transfer ", amount)
+
   const decimals = sourceParsedTokenAccount?.decimals;
   
   const isNative = false;

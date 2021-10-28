@@ -1,10 +1,10 @@
 <template>
   <Footer :class="isMobile ? 'mobile' : 'pc'">
     <div v-if="!isMobile" class="logo">
-      <a href="/"><img src="@/assets/icons/logo-text.svg" /></a>
+      <a href="/"><img src="@/assets/icons/logo-text.png" width="120px" /></a>
     </div>
     <div v-if="isMobile" class="logo">
-      <a href="/"><img src="@/assets/icons/logo-text.svg" /></a>
+      <a href="/"><img src="@/assets/icons/logo-text.png" width="120px" /></a>
     </div>
   </Footer>
 </template>

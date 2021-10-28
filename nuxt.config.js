@@ -33,7 +33,7 @@ export default {
       },
       { hid: 'description', name: 'description', content: 'An avenue for the evolution of DeFi' }
     ],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
+    link: [{ rel: 'icon', type: 'image/x-icon', href: '/logo-text.png' }]
   },
 
   loadingIndicator: {

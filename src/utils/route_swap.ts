@@ -11,18 +11,38 @@ import {
 } from '@solana/web3.js';
 
 // eslint-disable-next-line
-import { SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID, FEE_OWNER, ROUTER_PROGRAM_ID } from '@/utils/ids';
+import { RAY_LP_PROGRAM_ID_V4, MEMO_PROGRAM_ID, SERUM_PROGRAM_ID_V3, SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID, STABLE_LP_PROGRAM_ID, FEE_OWNER, ROUTER_PROGRAM_ID } from '@/utils/ids';
 import { getBigNumber } from '@/utils/layouts';
 // eslint-disable-next-line
 import { getTokenBalance, getTokenByMintAddress, NATIVE_SOL, TOKENS } from '@/utils/tokens';
 import { TokenAmount } from '@/utils/safe-math';
 import {
   createAssociatedTokenAccountIfNotExist, 
-  createTokenAccountIfNotExist,  sendTransaction,
+  // createProgramAccountIfNotExist,
+  createTokenAccountIfNotExist, 
+  // mergeTransactions, 
+  sendTransaction,
   getOneFilteredTokenAccountsByOwner
 } from '@/utils/web3';
 
-export async function route2Raydium(
+export const SPL_ENDPOINT_RAY = 'Raydium Pool'
+export const SPL_ENDPOINT_SRM = 'Serum Dex'
+export const SPL_ENDPOINT_SABER = 'Saber Pool'
+export const SPL_ENDPOINT_MERCURIAL = 'Mercurial Pool'
+export const SPL_ENDPOINT_ATLAS = 'Atlas Pool'
+export const SPL_ENDPOINT_ORCA = 'Orca Pool'
+
+const POOL_INDEX:any = {
+  'Raydium Pool': 0,
+  'Serum Dex': 1,
+  'Saber Pool': 2,
+  'Mercurial Pool': 3,
+  'Atlas Pool': 4,
+  'Orca Pool': 5,
+}
+
+
+export async function routeSwap(
   connection: Connection,
   wallet: any,
 
@@ -37,6 +57,8 @@ export async function route2Raydium(
   midTokenAccount: string,
   toTokenAccount: string,
   aIn: string,
+  route1:string,
+  route2:string,
 ) {
   const transaction = new Transaction()
   const signers: Account[] = []
@@ -110,32 +132,12 @@ export async function route2Raydium(
   const feeTokenAccount = (fromCoinMint === NATIVE_SOL.mintAddress) ?   FEE_OWNER :
         await getOneFilteredTokenAccountsByOwner(connection, new PublicKey(FEE_OWNER), new PublicKey(fromCoinMint))
   transaction.add(
-    route2RayInstruction(
-      new PublicKey(rayPoolInfo.programId),
-      new PublicKey(rayPoolInfo.ammId),
+    routeSwapInstruction(
+      rayPoolInfo,
+      stablePoolInfo,
 
-      new PublicKey(rayPoolInfo.ammAuthority),
-      new PublicKey(rayPoolInfo.ammOpenOrders),
-      new PublicKey(rayPoolInfo.ammTargetOrders),
-      new PublicKey(rayPoolInfo.poolCoinTokenAccount),
-      new PublicKey(rayPoolInfo.poolPcTokenAccount),
-
-      new PublicKey(rayPoolInfo.serumProgramId),
-      new PublicKey(rayPoolInfo.serumMarket),
-      new PublicKey(rayPoolInfo.serumBids),
-      new PublicKey(rayPoolInfo.serumAsks),
-      new PublicKey(rayPoolInfo.serumEventQueue),
-      new PublicKey(rayPoolInfo.serumCoinVaultAccount),
-      new PublicKey(rayPoolInfo.serumPcVaultAccount),
-      new PublicKey(rayPoolInfo.serumVaultSigner),
-
-      new PublicKey(stablePoolInfo.programId),
-      new PublicKey(stablePoolInfo.ammId),
-      new PublicKey(stablePoolInfo.ammAuthority),
-      new PublicKey(stablePoolInfo.poolCoinTokenAccount),
-      new PublicKey(stablePoolInfo.poolPcTokenAccount),
-      new PublicKey(stablePoolInfo.lp.mintAddress),
-      new PublicKey(stablePoolInfo.feeAccount),
+      POOL_INDEX[route1],
+      POOL_INDEX[route2],
 
       wrappedSolAccount ?? newFromTokenAccount,
       wrappedSolAccount2 ?? newMidTokenAccount,
@@ -171,35 +173,83 @@ export async function route2Raydium(
 
 }
 
-export function route2RayInstruction(
-  // amm
-  rayProgramId: PublicKey,
-  ammId: PublicKey,
-  ammAuthority: PublicKey,
-  ammOpenOrders: PublicKey,
-  ammTargetOrders: PublicKey,
-  poolCoinTokenAccount: PublicKey,
-  poolPcTokenAccount: PublicKey,
-  // serum
-  serumProgramId: PublicKey,
-  serumMarket: PublicKey,
-  serumBids: PublicKey,
-  serumAsks: PublicKey,
-  serumEventQueue: PublicKey,
-  serumCoinVaultAccount: PublicKey,
-  serumPcVaultAccount: PublicKey,
-  serumVaultSigner: PublicKey,
+function getRaydiumAccountInfos(rayPoolInfo:any)
+{
+  return [
+    { pubkey: rayPoolInfo.ammId, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.ammAuthority, isSigner: false, isWritable: false },
+    { pubkey: rayPoolInfo.ammOpenOrders, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.ammTargetOrders, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.poolCoinTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.poolPcTokenAccount, isSigner: false, isWritable: true },
+    // serum
+    { pubkey: rayPoolInfo.serumProgramId, isSigner: false, isWritable: false },
+    { pubkey: rayPoolInfo.serumMarket, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.serumBids, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.serumAsks, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.serumEventQueue, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.serumCoinVaultAccount, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.serumPcVaultAccount, isSigner: false, isWritable: true },
+    { pubkey: rayPoolInfo.serumVaultSigner, isSigner: false, isWritable: false },
+
+    { pubkey: rayPoolInfo.programId, isSigner: false, isWritable: false },
+
+  ]
+}
+
+function getAtlasAccountInfos(poolInfo:any)
+{
+  return [
+    { pubkey: poolInfo.ammId, isSigner: false, isWritable: true },
+    { pubkey: poolInfo.ammAuthority, isSigner: false, isWritable: false },
+    { pubkey: poolInfo.poolCoinTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: poolInfo.poolPcTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: poolInfo.lp.mintAddress, isSigner: false, isWritable: true },
+    { pubkey: poolInfo.feeAccount, isSigner: false, isWritable: true },
+
+    { pubkey: poolInfo.programId, isSigner: false, isWritable: false },
+  ]
+}
+function getSerumAccountInfos(_poolInfo:any)
+{
+  return [
+  ]
+}
+
+function getSaberAccountInfos(_poolInfo:any)
+{
+  return [
+  ]
+}
+
+function getMercurialAccountInfos(_poolInfo:any)
+{
+  return [
+  ]
+}
+
+function getOrcaAccountInfos(_poolInfo:any)
+{
+  return [
+  ]
+}
+
+const getSwapKeys = [
+  getRaydiumAccountInfos,
+  getSerumAccountInfos,
+  getSaberAccountInfos,
+  getMercurialAccountInfos,
+  getAtlasAccountInfos,
+  getOrcaAccountInfos,
+
+]
+
+export function routeSwapInstruction(
+  pool1:any,
+  pool2:any,
+  route1:number,
+  route2:number,
   
-  // stable pool
-  stableProgramId: PublicKey,
-  stableAMMId: PublicKey,
-  stableAuthority: PublicKey,
-  stableCoinToken: PublicKey,
-  stablePcToken: PublicKey,
-  stableLPMint: PublicKey,
-  stableFeeAccount: PublicKey,
-
-
   // user
   userSourceTokenAccount: PublicKey,
   userStableTokenAccount: PublicKey,
@@ -213,31 +263,9 @@ export function route2RayInstruction(
   amountIn: number,
 
 ): TransactionInstruction {
-  const dataLayout = struct([u8('instruction'), nu64('amountIn')])
-
+  const dataLayout = struct([u8('instruction'), u8('route1'), u8('route2'), nu64('amountIn')])
+    
   const keys = [
-    { pubkey: ammId, isSigner: false, isWritable: true },
-    { pubkey: ammAuthority, isSigner: false, isWritable: false },
-    { pubkey: ammOpenOrders, isSigner: false, isWritable: true },
-    { pubkey: ammTargetOrders, isSigner: false, isWritable: true },
-    { pubkey: poolCoinTokenAccount, isSigner: false, isWritable: true },
-    { pubkey: poolPcTokenAccount, isSigner: false, isWritable: true },
-    // serum
-    { pubkey: serumProgramId, isSigner: false, isWritable: false },
-    { pubkey: serumMarket, isSigner: false, isWritable: true },
-    { pubkey: serumBids, isSigner: false, isWritable: true },
-    { pubkey: serumAsks, isSigner: false, isWritable: true },
-    { pubkey: serumEventQueue, isSigner: false, isWritable: true },
-    { pubkey: serumCoinVaultAccount, isSigner: false, isWritable: true },
-    { pubkey: serumPcVaultAccount, isSigner: false, isWritable: true },
-    { pubkey: serumVaultSigner, isSigner: false, isWritable: false },
-
-    { pubkey: stableAMMId, isSigner: false, isWritable: true },
-    { pubkey: stableAuthority, isSigner: false, isWritable: false },
-    { pubkey: stableCoinToken, isSigner: false, isWritable: true },
-    { pubkey: stablePcToken, isSigner: false, isWritable: true },
-    { pubkey: stableLPMint, isSigner: false, isWritable: true },
-    { pubkey: stableFeeAccount, isSigner: false, isWritable: true },
 
     { pubkey: userOwner, isSigner: true, isWritable: false },
     { pubkey: userSourceTokenAccount, isSigner: false, isWritable: true },
@@ -246,16 +274,20 @@ export function route2RayInstruction(
     { pubkey: feeTokenAccount, isSigner: false, isWritable: true },
     { pubkey: feeOwner, isSigner: false, isWritable: true },
 
-    { pubkey: rayProgramId, isSigner: false, isWritable: false },
-    { pubkey: stableProgramId, isSigner: false, isWritable: false },
     { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
+
+    ...(getSwapKeys[route1])(pool1),
+    ...(getSwapKeys[route2])(pool2),
+
   ]
 
   const data = Buffer.alloc(dataLayout.span)
   dataLayout.encode(
     {
       instruction: 0,
+      route1,
+      route2,
       amountIn,
     },
     data

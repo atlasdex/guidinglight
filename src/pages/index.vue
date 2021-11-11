@@ -532,7 +532,16 @@ getSwapOutAmount, place as serumPlace,
 // swap as raydiumSwap, 
 wrap, checkUnsettledInfo, settleFund } from '@/utils/swap'
 import {stableSwap, STABLE_POOLS} from '@/utils/stable_swap'
-import {route2Raydium} from '@/utils/route_swap'
+import { 
+  routeSwap, 
+  // SPL_ENDPOINT_MERCURIAL, 
+  // SPL_ENDPOINT_ORCA, 
+  SPL_ENDPOINT_RAY, 
+  // SPL_ENDPOINT_SABER, 
+  // SPL_ENDPOINT_SRM, 
+  SPL_ENDPOINT_ATLAS 
+} from "@/utils/route_swap"
+
 import {crossTransfer, redeemToken} from '@/utils/wormhole' 
 
 import {
@@ -1576,7 +1585,7 @@ export default Vue.extend({
 
         const rayPoolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
 
-        route2Raydium(
+        routeSwap(
           this.$web3,
           // @ts-ignore
           this.$wallet,
@@ -1600,8 +1609,11 @@ export default Vue.extend({
           get(this.wallet.tokenAccounts, `${this.midCoinWormhole.mintAddress}.tokenAccountAddress`),
           
           this.fromCoinAmount,
+          
+          SPL_ENDPOINT_RAY,
+          SPL_ENDPOINT_ATLAS
           )
-        .then((txid) => {
+        .then((txid:string) => {
           this.$notify.info({
             key,
             message: 'Transaction has been sent',
@@ -1617,7 +1629,7 @@ export default Vue.extend({
           this.doWormholeTransfer(this.fromCoinAmount)
 
         })
-        .catch((error) => {
+        .catch((error:any) => {
           this.$notify.error({
             key,
             message: 'Swap failed',

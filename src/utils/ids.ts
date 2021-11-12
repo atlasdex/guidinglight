@@ -36,8 +36,10 @@ export const TEMP_LP_TOKEN_ASSOCIATED_SEED = 'temp_lp_token_associated_seed'
 export const STABLE_LP_PROGRAM_ID = '2E5cDaVrPPMp1a6Q7PNookgd48yUidJKgrf9as5ezWwF'
 
 // Provided by @Zhaohui
-export const ROUTER_PROGRAM_ID = '4NgQM7iT7HZGuqUzKsVW7jNu4QM8z9zURHJryCZ7M16X'
+// export const ROUTER_PROGRAM_ID = '4NgQM7iT7HZGuqUzKsVW7jNu4QM8z9zURHJryCZ7M16X'
+export const ROUTER_PROGRAM_ID = '47Yoihtcc1wTvCbg1x8MgJ1qA8aDj4bLrCkCEU5UUPb9'
 
 export const RAY_LP_PROGRAM_ID_V4 = '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'
 
+// export const FEE_OWNER = new PublicKey("32HUGVFfcXTu3kjRV933Bmf4ekGhc6hqrsakz8x9oHfu")
 export const FEE_OWNER = new PublicKey("2Pv5mjmKYAtXNpr3mcsXf7HjtS3fieJeFoWPATVT5rWa")

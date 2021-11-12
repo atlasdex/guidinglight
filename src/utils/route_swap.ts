@@ -222,9 +222,15 @@ function getSaberAccountInfos(_poolInfo:any)
   ]
 }
 
-function getMercurialAccountInfos(_poolInfo:any)
+function getMercurialAccountInfos(poolInfo:any)
 {
   return [
+    { pubkey: poolInfo.ammId, isSigner: false, isWritable: true },
+    { pubkey: poolInfo.ammAuthority, isSigner: false, isWritable: false },
+
+    ...poolInfo.accounts.map((tokenAccount:string) => ({ pubkey: tokenAccount, isSigner: false, isWritable: true })),
+    
+    { pubkey: poolInfo.programId, isSigner: false, isWritable: false },
   ]
 }
 

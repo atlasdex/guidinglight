@@ -531,10 +531,10 @@ import {
 getSwapOutAmount, place as serumPlace, 
 // swap as raydiumSwap, 
 wrap, checkUnsettledInfo, settleFund } from '@/utils/swap'
-import {stableSwap, STABLE_POOLS} from '@/utils/stable_swap'
+import {stableSwap, STABLE_POOLS, MERCURIAL_POOLS} from '@/utils/stable_swap'
 import { 
   routeSwap, 
-  // SPL_ENDPOINT_MERCURIAL, 
+  SPL_ENDPOINT_MERCURIAL, 
   // SPL_ENDPOINT_ORCA, 
   SPL_ENDPOINT_RAY, 
   // SPL_ENDPOINT_SABER, 
@@ -552,7 +552,9 @@ import {
 } from '@/utils/pools'
 
 const StartToken = getTokenBySymbol('RAY')
-const MidTokenStable = getTokenBySymbol('USDT')
+// const MidTokenStable = getTokenBySymbol('USDT')
+const MidTokenStable = getTokenBySymbol('USDC')
+
 const MidTokenWormhole = getTokenBySymbol('wUSDTv2')
 const MidTokenERCWormhole = getTokenBySymbol('USDT')
 interface PriceInfo {
@@ -1585,13 +1587,21 @@ export default Vue.extend({
 
         const rayPoolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
 
+        let stablePool = STABLE_POOLS.USDT
+        let stableEndpoint = SPL_ENDPOINT_ATLAS
+
+
+
+        stablePool = MERCURIAL_POOLS.wUSD4Pool
+        stableEndpoint = SPL_ENDPOINT_MERCURIAL
+        
         routeSwap(
           this.$web3,
           // @ts-ignore
           this.$wallet,
           
           rayPoolInfo,
-          STABLE_POOLS.USDT,
+          stablePool,
           
           // @ts-ignore
           this.fromCoin.mintAddress,
@@ -1611,7 +1621,7 @@ export default Vue.extend({
           this.fromCoinAmount,
           
           SPL_ENDPOINT_RAY,
-          SPL_ENDPOINT_ATLAS
+          stableEndpoint
           )
         .then((txid:string) => {
           this.$notify.info({

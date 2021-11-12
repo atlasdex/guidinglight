@@ -98,6 +98,21 @@ const STABLE_LP_TOKENS:Tokens= {
   },
 }
 
+export const MERCURIAL_POOLS = {
+  wUSD4Pool:{
+    name: 'wUSD-4Pool',
+    programId: 'MERLuDFBMmsHnsBPZw2sDQZHvXFMwp8EdjudcU2HKky',
+    ammId: 'USD42Jvem43aBSLqT83GZmvRbzAjpKBonQYBQhni7Cv',
+    ammAuthority: '3m15qNJDM5zydsYNJzkFYXE7iGCVnkKz1mrmbawrDUAH',
+    accounts:[
+      '54q2ct7kTknGvADuHSXjtnKqMbmNQ4xpDVK2xgcnh1xv',
+      '5cvqiPREvEYmhvBt3cZ7fmrCE6tbYvwkAiuvf1pHUPBq',
+      '9gVstb8HkuYX8PqjLSc9b9zLMhFZwWX7k3ofLcWy7wyS',
+      'HLdcfovcXkHKm4iQWNQZhJypySmuGa1PGoTuB6L68hhZ'
+    ]
+  }
+}
+
 export const STABLE_POOLS: any = {
   USDT:{
     name: 'USDT-wWUSDT',

@@ -94,6 +94,52 @@ export async function createTokenAccountIfNotExist(
   return publicKey
 }
 
+export async function createAtaSolIfNotExistAndWrap(
+  connection: Connection,
+  account: string | undefined | null,
+  owner: PublicKey,
+  transaction: Transaction,
+  signers: Array<Account>,
+  amount: number
+) {
+  let publicKey
+  if (account) {
+    publicKey = new PublicKey(account)
+  }
+  const mint = new PublicKey(TOKENS.WSOL.mintAddress)
+  // @ts-ignore without ts ignore, yarn build will failed
+  const ata = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint, owner, true)
+  if (!publicKey) {
+    const rent = await Token.getMinBalanceRentForExemptAccount(connection)
+    transaction.add(
+      SystemProgram.transfer({ fromPubkey: owner, toPubkey: ata, lamports: amount + rent }),
+      Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        mint,
+        ata,
+        owner,
+        owner
+      )
+    )
+  } else {
+    const rent = await Token.getMinBalanceRentForExemptAccount(connection)
+    const wsol = await createTokenAccountIfNotExist(
+      connection,
+      null,
+      owner,
+      TOKENS.WSOL.mintAddress,
+      amount + rent,
+      transaction,
+      signers
+    )
+    transaction.add(
+      Token.createTransferInstruction(TOKEN_PROGRAM_ID, wsol, ata, owner, [], amount),
+      Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, wsol, owner, owner, [])
+    )
+  }
+}
+
 export async function createAssociatedTokenAccountIfNotExistEx(
   account: string | undefined | null,
   owner: PublicKey,
@@ -131,6 +177,7 @@ export async function createAssociatedTokenAccountIfNotExistEx(
 
   return ata
 }
+
 export async function createAssociatedTokenAccountIfNotExist(
   account: string | undefined | null,
   owner: PublicKey,
@@ -148,11 +195,7 @@ export async function createAssociatedTokenAccountIfNotExist(
   // @ts-ignore without ts ignore, yarn build will failed
   const ata = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint, owner, true)
 
-  if (
-    (!publicKey || !ata.equals(publicKey)) &&
-    mintAddress !== TOKENS.WSOL.mintAddress &&
-    !atas.includes(ata.toBase58())
-  ) {
+  if ((!publicKey || !ata.equals(publicKey)) && !atas.includes(ata.toBase58())) {
     transaction.add(
       Token.createAssociatedTokenAccountInstruction(
         ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -161,6 +204,41 @@ export async function createAssociatedTokenAccountIfNotExist(
         ata,
         owner,
         owner
+      )
+    )
+    atas.push(ata.toBase58())
+  }
+
+  return ata
+}
+
+export async function createAssociatedTokenAccountIfNotExist2(
+  account: string | undefined | null,
+  owner: PublicKey,
+  payer: PublicKey,
+  mintAddress: string,
+
+  transaction: Transaction,
+  atas: string[] = []
+) {
+  let publicKey
+  if (account) {
+    publicKey = new PublicKey(account)
+  }
+
+  const mint = new PublicKey(mintAddress)
+  // @ts-ignore without ts ignore, yarn build will failed
+  const ata = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint, owner, true)
+
+  if ((!publicKey || !ata.equals(publicKey)) && !atas.includes(ata.toBase58())) {
+    transaction.add(
+      Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        mint,
+        ata,
+        owner,
+        payer
       )
     )
     atas.push(ata.toBase58())
@@ -450,17 +528,22 @@ export async function getFilteredTokenAccountsByOwner(
 export async function getOneFilteredTokenAccountsByOwner(  connection: Connection,
   owner: PublicKey,
   mint: PublicKey
-): Promise<string> {
-  const tokenAccountList1 = await getFilteredTokenAccountsByOwner(connection, owner, mint)
-  
-  const tokenAccountList: any = tokenAccountList1.value.map((item: any) => {
-      return item.pubkey
-  })
-  let tokenAccount
-  for (const item of tokenAccountList) {
-    if (item !== null) {
-      tokenAccount = item
+): Promise<string|null> {
+  try{
+    const tokenAccountList1 = await getFilteredTokenAccountsByOwner(connection, owner, mint)
+    const tokenAccountList: any = tokenAccountList1.value.map((item: any) => {
+        return item.pubkey
+    })
+    let tokenAccount
+    for (const item of tokenAccountList) {
+      if (item !== null) {
+        tokenAccount = item
+      }
     }
+    return tokenAccount
   }
-  return tokenAccount
+  catch{
+    return null
+  }
+
 }

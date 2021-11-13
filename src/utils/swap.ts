@@ -279,7 +279,8 @@ export async function swap(
   fromTokenAccount: string,
   toTokenAccount: string,
   aIn: string,
-  aOut: string
+  aOut: string,
+  wsolAddress: string
 ) {
   const transaction = new Transaction()
   const signers: Account[] = []
@@ -295,6 +296,16 @@ export async function swap(
   const amountIn = new TokenAmount(aIn, from.decimals, false)
   const amountOut = new TokenAmount(aOut, to.decimals, false)
 
+  if (fromCoinMint === NATIVE_SOL.mintAddress && wsolAddress) {
+    transaction.add(
+      closeAccount({
+        source: new PublicKey(wsolAddress),
+        destination: owner,
+        owner
+      })
+    )
+  }
+
   let fromMint = fromCoinMint
   let toMint = toCoinMint
 
@@ -307,6 +318,8 @@ export async function swap(
 
   let wrappedSolAccount: PublicKey | null = null
   let wrappedSolAccount2: PublicKey | null = null
+  let newFromTokenAccount = PublicKey.default
+  let newToTokenAccount = PublicKey.default
 
   if (fromCoinMint === NATIVE_SOL.mintAddress) {
     wrappedSolAccount = await createTokenAccountIfNotExist(
@@ -318,7 +331,10 @@ export async function swap(
       transaction,
       signers
     )
+  } else {
+    newFromTokenAccount = await createAssociatedTokenAccountIfNotExist(fromTokenAccount, owner, fromMint, transaction)
   }
+
   if (toCoinMint === NATIVE_SOL.mintAddress) {
     wrappedSolAccount2 = await createTokenAccountIfNotExist(
       connection,
@@ -329,15 +345,9 @@ export async function swap(
       transaction,
       signers
     )
+  } else {
+    newToTokenAccount = await createAssociatedTokenAccountIfNotExist(toTokenAccount, owner, toMint, transaction)
   }
-
-  const newFromTokenAccount = await createAssociatedTokenAccountIfNotExist(
-    fromTokenAccount,
-    owner,
-    fromMint,
-    transaction
-  )
-  const newToTokenAccount = await createAssociatedTokenAccountIfNotExist(toTokenAccount, owner, toMint, transaction)
 
   transaction.add(
     swapInstruction(
@@ -382,27 +392,10 @@ export async function swap(
       })
     )
   }
-  const oriBalance = wrappedSolAccount2 ? 
-                (await connection.getBalance(wallet.publicKey)): 
-                (await getTokenBalance(connection, newToTokenAccount.toString()));
 
-  const tx = await sendTransaction(connection, wallet, transaction, signers)
-
-  let newBalance = 0
-  while(oriBalance >= newBalance)
-  {
-    newBalance = wrappedSolAccount2 ? 
-              (await connection.getBalance(wallet.publicKey)): 
-              (await getTokenBalance(connection, newToTokenAccount.toString()));
-  }
-
-  const amountIncreased = (new TokenAmount(newBalance - oriBalance, to.decimals)).fixed()
-
-  return {
-    tx,
-    amountIncreased
-  }
+  return await sendTransaction(connection, wallet, transaction, signers)
 }
+
 
 export async function place(
   connection: Connection,

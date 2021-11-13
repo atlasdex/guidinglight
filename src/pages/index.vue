@@ -97,6 +97,7 @@
     </div>
 
     <CoinSelect v-if="coinSelectShow" @onClose="() => (coinSelectShow = false)" @onSelect="onCoinSelect" />
+    <CoinSelectStable v-if="coinSelectStableShow" @onClose="() => (coinSelectStableShow = false)" @onSelect="onCoinSelectStable" />
     <AmmIdSelect
       :show="ammIdSelectShow"
       :liquidity-list="ammIdSelectList"
@@ -150,13 +151,12 @@
 
         <CoinInput
           v-model="best_midCoinStableAmount"
-          label="To (Estimated by the best DeFi)"
+          label="To Stable Coin"
           :mint-address="midCoinStable ? midCoinStable.mintAddress : ''"
+          :disabled="true"
           :coin-name="midCoinStable ? midCoinStable.symbol : ''"
           :balance="midCoinStable ? midCoinStable.balance : null"
           :show-max="false"
-          :disabled="true"
-          :token-disabled = "true"
           @onInput="(amount) => (best_midCoinStableAmount = amount)"
           @onFocus="
             () => {
@@ -169,11 +169,11 @@
               best_midCoinStableAmount = midCoinStable.balance.fixed()
             }
           "
-          @onSelect="openmidCoinStableSelect"
+          @onSelect="openStableCoinSelect"
         />
         <CoinInput
           v-model="best_midCoinStableAmount"
-          label="To (Estimated by Stable Pool)"
+          :label="stableSwapEndpoint"
           :mint-address="midCoinWormhole ? midCoinWormhole.mintAddress : ''"
           :coin-name="midCoinWormhole ? midCoinWormhole.symbol : ''"
           :balance="midCoinWormhole ? midCoinWormhole.balance : null"
@@ -192,7 +192,7 @@
               best_midCoinStableAmount = midCoinWormhole.balance.fixed()
             }
           "
-          @onSelect="openmidCoinWormholeSelect"
+          @onSelect="openWormholeCoinSelect"
         />
         <CoinInput
           v-model="best_midCoinStableAmount"
@@ -340,10 +340,18 @@
               fromCoinAmount,
               fromCoin && fromCoin.balance
                 ? fromCoin.symbol === 'SOL'
-                  ? fromCoin.balance.toEther().minus(0.05).toFixed(fromCoin.balance.decimals)
+                  ? fromCoin.balance
+                      .toEther()
+                      .minus(0.05)
+                      .plus(
+                        get(wallet.tokenAccounts, `${TOKENS.WSOL.mintAddress}.balance`)
+                          ? get(wallet.tokenAccounts, `${TOKENS.WSOL.mintAddress}.balance`).toEther()
+                          : 0
+                      )
+                      .toFixed(fromCoin.balance.decimals)
                   : fromCoin.balance.fixed()
                 : '0'
-            ) || // not enough SOL to swap SOL to another coin
+            )  || // not enough SOL to swap SOL to another coin
             (get(liquidity.infos, `${lpMintAddress}.status`) &&
               get(liquidity.infos, `${lpMintAddress}.status`) !== 1) ||
             swaping ||
@@ -375,7 +383,15 @@
                 fromCoinAmount,
                 fromCoin && fromCoin.balance
                   ? fromCoin.symbol === 'SOL'
-                    ? fromCoin.balance.toEther().minus(0.05).toFixed(fromCoin.balance.decimals)
+                    ? fromCoin.balance
+                        .toEther()
+                        .minus(0.05)
+                        .plus(
+                          get(wallet.tokenAccounts, `${TOKENS.WSOL.mintAddress}.balance`)
+                            ? get(wallet.tokenAccounts, `${TOKENS.WSOL.mintAddress}.balance`).toEther()
+                            : 0
+                        )
+                        .toFixed(fromCoin.balance.decimals)
                     : fromCoin.balance.fixed()
                   : '0'
               )
@@ -383,6 +399,7 @@
           >
             Insufficient {{ fromCoin.symbol }} balance
           </template>
+          <template v-else-if="needCreateTokens() || needWrapSol()"> Prepare swap </template>
           <template
             v-else-if="
               get(liquidity.infos, `${lpMintAddress}.status`) && get(liquidity.infos, `${lpMintAddress}.status`) !== 1
@@ -520,20 +537,26 @@ import { uint8ArrayToHex, hexToUint8Array } from "@/utils/wormhole/array"
 
 import { getTokenBySymbol, TokenInfo, NATIVE_SOL, TOKENS } from '@/utils/tokens'
 import { inputRegex, escapeRegExp } from '@/utils/regex'
-import { getMultipleAccounts, commitment } from '@/utils/web3'
-import { SERUM_PROGRAM_ID_V3 } from '@/utils/ids'
+import { getMultipleAccounts, commitment , getOneFilteredTokenAccountsByOwner} from '@/utils/web3'
+import { SERUM_PROGRAM_ID_V3 , FEE_OWNER} from '@/utils/ids'
 import { TokenAmount, gt } from '@/utils/safe-math'
 import { getUnixTs } from '@/utils'
 import { canWrap, getLiquidityInfoSimilar } from '@/utils/liquidity'
 
 import { 
   // getOutAmount, 
-getSwapOutAmount, place as serumPlace, 
+getSwapOutAmount, 
+// place as serumPlace, 
 // swap as raydiumSwap, 
 wrap, checkUnsettledInfo, settleFund } from '@/utils/swap'
-import {stableSwap, STABLE_POOLS, MERCURIAL_POOLS} from '@/utils/stable_swap'
+import {
+  // stableSwap, 
+  STABLE_POOLS, 
+  MERCURIAL_POOLS
+} from '@/utils/stable_swap'
 import { 
   routeSwap, 
+  preSwapRoute,
   SPL_ENDPOINT_MERCURIAL, 
   // SPL_ENDPOINT_ORCA, 
   SPL_ENDPOINT_RAY, 
@@ -551,7 +574,7 @@ import {
   LiquidityPoolInfo
 } from '@/utils/pools'
 
-const StartToken = getTokenBySymbol('RAY')
+const StartToken = getTokenBySymbol('SOL')
 // const MidTokenStable = getTokenBySymbol('USDT')
 const MidTokenStable = getTokenBySymbol('USDC')
 
@@ -605,15 +628,17 @@ export default Vue.extend({
       isSettlingQuote: false,
 
       coinSelectShow: false,
+      coinSelectStableShow: false,
       coinIndex: 0,
       fixedFromCoin: true,
-
       fromCoin: StartToken as TokenInfo | null,
       midCoinStable: MidTokenStable as TokenInfo | null,
       midCoinWormhole: MidTokenWormhole as TokenInfo | null,
       midCoin3: MidTokenERCWormhole as TokenInfo | null,
-      fromCoinAmount: '0.1',
+      fromCoinAmount: '0.05',
       progressText: '',
+
+      feeTokenAccount: null as string|null,
 
       best_midCoinStableAmount: '',
       best_midCoinStableWithSlippage: '',
@@ -621,7 +646,7 @@ export default Vue.extend({
       best_endpoint: '',
       best_priceImpact: 0,
       best_outToPirceValue: 0,
-
+      stableSwapEndpoint:'From Mercurial Finance',
       prices: [] as PriceInfo[],
 
       // wrap
@@ -813,15 +838,15 @@ export default Vue.extend({
       }, 1)
     },
 
-    openmidCoinStableSelect() {
+    openStableCoinSelect() {
       this.coinIndex = 1
-      this.closeAllModal('coinSelectShow')
+      this.closeAllModal('coinSelectStableShow')
       setTimeout(() => {
-        this.coinSelectShow = true
+        this.coinSelectStableShow = true
       }, 1)
     },
 
-    openmidCoinWormholeSelect() {
+    openWormholeCoinSelect() {
       this.coinIndex = 2
       this.closeAllModal('coinSelectShow')
       setTimeout(() => {
@@ -836,10 +861,14 @@ export default Vue.extend({
       }, 1)
     },
 
-    onCoinSelect(tokenInfo: TokenInfo) {
+    async onCoinSelect(tokenInfo: TokenInfo) {
       if (tokenInfo !== null) {
         if (this.coinIndex === 0) {
           this.fromCoin = cloneDeep(tokenInfo)
+
+          let feeTokenMint = this.fromCoin?.mintAddress
+          if (feeTokenMint === NATIVE_SOL.mintAddress) feeTokenMint = TOKENS.WSOL.mintAddress
+          this.feeTokenAccount = await getOneFilteredTokenAccountsByOwner(this.$web3, new PublicKey(FEE_OWNER), new PublicKey(feeTokenMint))
 
           if (this.midCoinStable?.mintAddress === tokenInfo.mintAddress) {
             this.midCoinStable = null
@@ -890,6 +919,23 @@ export default Vue.extend({
 
       }
       this.coinSelectShow = false
+    },
+    onCoinSelectStable(tokenInfo: TokenInfo) {
+      if (tokenInfo !== null) {
+        this.midCoinStable = cloneDeep(tokenInfo)
+        if(this.midCoinStable.symbol === 'USDC')
+        {
+          this.stableSwapEndpoint = "From Mercurial Finance"
+        }
+        else{
+          this.stableSwapEndpoint = "From Atlas Finance"
+        }
+        if (this.fromCoin?.mintAddress === tokenInfo.mintAddress) {
+          this.fromCoin = null
+          this.changeCoinAmountPosition()
+        }
+      }
+      this.coinSelectStableShow = false
     },
 
     setCoinFromMint(ammIdOrMarket: string | undefined, from: string | undefined, to: string | undefined) {
@@ -1483,7 +1529,7 @@ export default Vue.extend({
         this.swaping = false
       })
     },
-    doStableSwap(amountIncreased:string){
+    /* doStableSwap(amountIncreased:string){
       const key = getUnixTs().toString()
       this.progressText = "Swaping via Atlas stable pool"
       stableSwap(
@@ -1526,7 +1572,45 @@ export default Vue.extend({
         console.log(error)
         this.swaping = false
       })
+    }, */
+
+    needCreateTokens() {
+      if (
+        this.best_endpoint !== 'Serum DEX' &&
+        this.fromCoin !== null &&
+        this.midCoinWormhole !== null
+      ) {
+        let fromMint = this.fromCoin?.mintAddress
+        let midMint = this.midCoinStable?.mintAddress
+        let toMint = this.midCoinWormhole?.mintAddress
+        if (fromMint === NATIVE_SOL.mintAddress) fromMint = TOKENS.WSOL.mintAddress
+        if (midMint === NATIVE_SOL.mintAddress) midMint = TOKENS.WSOL.mintAddress
+        if (toMint === NATIVE_SOL.mintAddress) toMint = TOKENS.WSOL.mintAddress
+        return !(
+          this.feeTokenAccount && 
+          get(this.wallet.tokenAccounts, `${fromMint}.tokenAccountAddress`) &&
+          get(this.wallet.tokenAccounts, `${midMint}.tokenAccountAddress`) &&
+          get(this.wallet.tokenAccounts, `${toMint}.tokenAccountAddress`)
+        )
+      }
+      return false
     },
+
+    needWrapSol() {
+      if (
+        this.best_endpoint !== 'Serum DEX' &&
+        this.fromCoin !== null
+      ) {
+        if ([NATIVE_SOL.mintAddress, TOKENS.WSOL.mintAddress].includes(this.fromCoin.mintAddress)) {
+          let amount = get(this.wallet.tokenAccounts, `${TOKENS.WSOL.mintAddress}.balance`)
+          amount = Math.ceil((amount ? Number(amount.fixed()) : 0) * 10 ** 9)
+          const fromCoinAmountData = Math.ceil(Number(this.fromCoinAmount) * 10 ** 9)
+          if (fromCoinAmountData > amount) return fromCoinAmountData - amount
+        }
+      }
+      return 0
+    },
+
     placeOrder() {
       this.swaping = true
 
@@ -1582,72 +1666,7 @@ export default Vue.extend({
             this.swaping = false
 
           })
-      } 
-      else if (this.best_endpoint === 'Raydium Pool' && this.ammId) {
-
-        const rayPoolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
-
-        let stablePool = STABLE_POOLS.USDT
-        let stableEndpoint = SPL_ENDPOINT_ATLAS
-
-
-
-        stablePool = MERCURIAL_POOLS.wUSD4Pool
-        stableEndpoint = SPL_ENDPOINT_MERCURIAL
-        
-        routeSwap(
-          this.$web3,
-          // @ts-ignore
-          this.$wallet,
-          
-          rayPoolInfo,
-          stablePool,
-          
-          // @ts-ignore
-          this.fromCoin.mintAddress,
-          // @ts-ignore
-          this.midCoinStable.mintAddress,
-
-          // @ts-ignore
-          this.midCoinWormhole.mintAddress,
-
-          // @ts-ignore
-          get(this.wallet.tokenAccounts, `${this.fromCoin.mintAddress}.tokenAccountAddress`),
-          // @ts-ignore
-          get(this.wallet.tokenAccounts, `${this.midCoinStable.mintAddress}.tokenAccountAddress`),
-          // @ts-ignore
-          get(this.wallet.tokenAccounts, `${this.midCoinWormhole.mintAddress}.tokenAccountAddress`),
-          
-          this.fromCoinAmount,
-          
-          SPL_ENDPOINT_RAY,
-          stableEndpoint
-          )
-        .then((txid:string) => {
-          this.$notify.info({
-            key,
-            message: 'Transaction has been sent',
-            description: (h: any) =>
-              h('div', [
-                'Confirmation is in progress.  Check your transaction on ',
-                h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
-              ])
-          })
-
-          const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_midCoinStableAmount} ${this.midCoinWormhole?.symbol}`
-          this.$accessor.transaction.sub({ txid, description })
-          this.doWormholeTransfer(this.fromCoinAmount)
-
-        })
-        .catch((error:any) => {
-          this.$notify.error({
-            key,
-            message: 'Swap failed',
-            description: error.message
-          })
-          this.swaping = false
-        })
-      } else if(this.best_endpoint === 'Serum Dex') {
+      } /* else if(this.best_endpoint === 'Serum Dex') {
         serumPlace(
           this.$web3,
           // @ts-ignore
@@ -1692,7 +1711,142 @@ export default Vue.extend({
           this.swaping = false
         })
 
+      } */else if (!this.feeTokenAccount || this.needCreateTokens() || this.needWrapSol()) {
+        // console.log(this.fromCoin?.mintAddress, this.midCoinStable?.mintAddress, this.midCoinWormhole?.mintAddress)
+        let fromMint = this.fromCoin?.mintAddress
+        let midMint = this.midCoinStable?.mintAddress
+        let toMint = this.midCoinWormhole?.mintAddress
+        if (fromMint === NATIVE_SOL.mintAddress) fromMint = TOKENS.WSOL.mintAddress
+        if (midMint === NATIVE_SOL.mintAddress) midMint = TOKENS.WSOL.mintAddress
+        if (toMint === NATIVE_SOL.mintAddress) toMint = TOKENS.WSOL.mintAddress
+
+        preSwapRoute(
+          this.$web3,
+          // @ts-ignore
+          this.$wallet,
+          // @ts-ignore
+          fromMint,
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${fromMint}.tokenAccountAddress`),
+          this.feeTokenAccount,
+          // @ts-ignore
+          midMint,
+          get(this.wallet.tokenAccounts, `${midMint}.tokenAccountAddress`),
+          // @ts-ignore
+          toMint,
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${toMint}.tokenAccountAddress`),
+          this.needWrapSol()
+        )
+          .then((txid: string) => {
+            this.$notify.info({
+              key,
+              message: 'Transaction has been sent',
+              description: (h: any) =>
+                h('div', [
+                  'Confirmation is in progress.  Check your transaction on ',
+                  h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+                ])
+            })
+            const description = `Create Tokens`
+            this.$accessor.transaction.sub({ txid, description })
+            getOneFilteredTokenAccountsByOwner(this.$web3, new PublicKey(FEE_OWNER), new PublicKey(fromMint)).then((account)=>{
+              this.feeTokenAccount = account
+            })
+
+          })
+          .catch((error: Error) => {
+            this.$notify.error({
+              key,
+              message: 'Create Tokens failed',
+              description: error.message
+            })
+          })
+          .finally(() => {
+            this.swaping = false
+          })
       }
+      else if (this.best_endpoint === 'Raydium Pool' && this.ammId) {
+
+        const rayPoolInfo = Object.values(this.$accessor.liquidity.infos).find((p: any) => p.ammId === this.ammId)
+
+        let fromMint = this.fromCoin?.mintAddress
+        let midMint = this.midCoinStable?.mintAddress
+        let toMint = this.midCoinWormhole?.mintAddress
+        
+        if (fromMint === NATIVE_SOL.mintAddress) fromMint = TOKENS.WSOL.mintAddress
+        if (midMint === NATIVE_SOL.mintAddress) midMint = TOKENS.WSOL.mintAddress
+        if (toMint === NATIVE_SOL.mintAddress) toMint = TOKENS.WSOL.mintAddress
+
+
+        let stablePool = STABLE_POOLS.USDT
+        let stableEndpoint = SPL_ENDPOINT_ATLAS
+        
+        if(this.midCoinStable.symbol === 'USDC')
+        {
+          stablePool = MERCURIAL_POOLS.wUSD4Pool
+          stableEndpoint = SPL_ENDPOINT_MERCURIAL
+        }
+
+        routeSwap(
+          this.$web3,
+          // @ts-ignore
+          this.$wallet,
+          
+          rayPoolInfo,
+          stablePool,
+          
+          // @ts-ignore
+          this.fromCoin.mintAddress,
+          // @ts-ignore
+          this.midCoinStable.mintAddress,
+
+          // @ts-ignore
+          this.midCoinWormhole.mintAddress,
+
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${fromMint}.tokenAccountAddress`),
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${midMint}.tokenAccountAddress`),
+          // @ts-ignore
+          get(this.wallet.tokenAccounts, `${toMint}.tokenAccountAddress`),
+          
+          this.fromCoinAmount,
+          this.best_midCoinStableWithSlippage,
+
+          SPL_ENDPOINT_RAY,
+          stableEndpoint
+          )
+        .then((txid:string) => {
+          this.$notify.info({
+            key,
+            message: 'Transaction has been sent',
+            description: (h: any) =>
+              h('div', [
+                'Confirmation is in progress.  Check your transaction on ',
+                h('a', { attrs: { href: `${this.url.explorer}/tx/${txid}`, target: '_blank' } }, 'here')
+              ])
+          })
+
+          const description = `Swap ${this.fromCoinAmount} ${this.fromCoin?.symbol} to ${this.best_midCoinStableWithSlippage} ${this.midCoinWormhole?.symbol}`
+          this.$accessor.transaction.sub({ txid, description })
+
+        })
+        .catch((error:any) => {
+          this.$notify.error({
+            key,
+            message: 'Swap failed',
+            description: error.message
+          })
+          this.swaping = false
+        })
+        .finally(()=>{
+          if(this.swaping)
+          {
+            this.doWormholeTransfer(this.best_midCoinStableWithSlippage)
+          }
+        })
+      } 
     },
 
     async updateUrl() {

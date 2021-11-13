@@ -6,11 +6,13 @@ import { struct,  u8} from '@project-serum/borsh'
 
 import { getBigNumber } from "@/utils/layouts";
 import { TokenAmount } from "@/utils/safe-math";
-import { getTokenBalance, NATIVE_SOL, TOKENS, getTokenByMintAddress, TokenInfo, Tokens } from "@/utils/tokens";
+import { 
+  // getTokenBalance,
+  NATIVE_SOL, TOKENS, getTokenByMintAddress, TokenInfo, Tokens } from "@/utils/tokens";
 import { createAssociatedTokenAccountIfNotExist, createTokenAccountIfNotExist, sendTransaction } from "@/utils/web3";
 
 
-export const swapInstruction = (
+export const atlasSwapInstruction = (
   tokenSwap: PublicKey,
   authority: PublicKey,
   userTransferAuthority: PublicKey,
@@ -56,6 +58,53 @@ export const swapInstruction = (
     {
       instruction: 1, // Swap instruction
       amountIn,
+      minimumAmountOut,
+    },
+    data
+  );
+
+  return new TransactionInstruction({
+    keys,
+    programId: swapProgramId,
+    data,
+  });
+};
+
+export const mercurialSwapInstruction = (
+  swapInfo: PublicKey,
+  authority: PublicKey,
+  userTransferAuthority: PublicKey,
+  tokenAccounts: string[],
+  userSourceTokenAccount: PublicKey,
+  userDestinationTokenAccount: PublicKey,
+  inAmount: number,
+  minimumAmountOut: number,
+  swapProgramId:PublicKey
+): TransactionInstruction => {
+
+  const dataLayout = struct([
+    u8("instruction"),
+    nu64("inAmount"),
+    nu64("minimumAmountOut"),
+  ]);
+
+  const keys = [
+    { pubkey: swapInfo, isSigner: false, isWritable: false },
+    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: userTransferAuthority, isSigner: true, isWritable: false },
+
+    ...tokenAccounts.map((tokenAccount:string) => ({ pubkey: new PublicKey(tokenAccount), isSigner: false, isWritable: true })),
+
+    { pubkey: userSourceTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: userDestinationTokenAccount, isSigner: false, isWritable: true }
+  ]
+
+  const data = Buffer.alloc(dataLayout.span);
+  dataLayout.encode(
+    {
+      instruction: 4, // exchange instruction
+      inAmount,
       minimumAmountOut,
     },
     data
@@ -158,114 +207,97 @@ export async function stableSwap(
     aIn: string,
     aOut: string
 ) {
-    const transaction = new Transaction()
-    const signers: Account[] = []
-  
-    const owner = wallet.publicKey
-  
-    const from = getTokenByMintAddress(fromCoinMint)
-    const to = getTokenByMintAddress(toCoinMint)
+  const transaction = new Transaction()
+  const signers: Account[] = []
 
-    if (!from || !to) {
-      throw new Error('Miss token info')
-    }
-  
-    const amountIn = new TokenAmount(aIn, from.decimals, false)
-    const amountOut = new TokenAmount(aOut, to.decimals, false)
-    let fromMint = fromCoinMint
-    let toMint = toCoinMint
-  
-    if (fromMint === NATIVE_SOL.mintAddress) {
-      fromMint = TOKENS.WSOL.mintAddress
-    }
-    if (toMint === NATIVE_SOL.mintAddress) {
-      toMint = TOKENS.WSOL.mintAddress
-    }
-  
-    let wrappedSolAccount: PublicKey | null = null
-    let wrappedSolAccount2: PublicKey | null = null
-  
-    if (fromCoinMint === NATIVE_SOL.mintAddress) {
-      wrappedSolAccount = await createTokenAccountIfNotExist(
-        connection,
-        wrappedSolAccount,
-        owner,
-        TOKENS.WSOL.mintAddress,
-        getBigNumber(amountIn.wei) + 1e7,
-        transaction,
-        signers
-      )
-    }
-    if (toCoinMint === NATIVE_SOL.mintAddress) {
-      wrappedSolAccount2 = await createTokenAccountIfNotExist(
-        connection,
-        wrappedSolAccount2,
-        owner,
-        TOKENS.WSOL.mintAddress,
-        1e7,
-        transaction,
-        signers
-      )
-    }
-  
-    const newFromTokenAccount = await createAssociatedTokenAccountIfNotExist(fromTokenAccount, owner, fromMint, transaction)
-    const newToTokenAccount = await createAssociatedTokenAccountIfNotExist(toTokenAccount, owner, toMint, transaction)
-    
-    transaction.add(
-        swapInstruction(
-            new PublicKey(poolInfo.ammId),
-            new PublicKey(poolInfo.ammAuthority),
-            wallet.publicKey,
-            wrappedSolAccount ?? newFromTokenAccount,
-            new PublicKey(poolInfo.poolCoinTokenAccount),
-            new PublicKey(poolInfo.poolPcTokenAccount),
-            wrappedSolAccount2 ?? newToTokenAccount,
-            new PublicKey(poolInfo.lp.mintAddress),
-            new PublicKey(poolInfo.feeAccount),
-            new PublicKey(poolInfo.programId),
-            TOKEN_PROGRAM_ID,
-            Math.floor(getBigNumber(amountIn.toWei())),
-            Math.floor(getBigNumber(amountOut.toWei())),
-            undefined
-        )
+  const owner = wallet.publicKey
+
+  const from = getTokenByMintAddress(fromCoinMint)
+  const to = getTokenByMintAddress(toCoinMint)
+
+  if (!from || !to) {
+    throw new Error('Miss token info')
+  }
+
+  const amountIn = new TokenAmount(aIn, from.decimals, false)
+  const amountOut = new TokenAmount(aOut, to.decimals, false)
+  let fromMint = fromCoinMint
+  let toMint = toCoinMint
+
+  if (fromMint === NATIVE_SOL.mintAddress) {
+    fromMint = TOKENS.WSOL.mintAddress
+  }
+  if (toMint === NATIVE_SOL.mintAddress) {
+    toMint = TOKENS.WSOL.mintAddress
+  }
+
+  let wrappedSolAccount: PublicKey | null = null
+  let wrappedSolAccount2: PublicKey | null = null
+
+  if (fromCoinMint === NATIVE_SOL.mintAddress) {
+    wrappedSolAccount = await createTokenAccountIfNotExist(
+      connection,
+      wrappedSolAccount,
+      owner,
+      TOKENS.WSOL.mintAddress,
+      getBigNumber(amountIn.wei) + 1e7,
+      transaction,
+      signers
     )
+  }
+  if (toCoinMint === NATIVE_SOL.mintAddress) {
+    wrappedSolAccount2 = await createTokenAccountIfNotExist(
+      connection,
+      wrappedSolAccount2,
+      owner,
+      TOKENS.WSOL.mintAddress,
+      1e7,
+      transaction,
+      signers
+    )
+  }
+
+  const newFromTokenAccount = await createAssociatedTokenAccountIfNotExist(fromTokenAccount, owner, fromMint, transaction)
+  const newToTokenAccount = await createAssociatedTokenAccountIfNotExist(toTokenAccount, owner, toMint, transaction)
   
-    if (wrappedSolAccount) {
-      transaction.add(
-        closeAccount({
-          source: wrappedSolAccount,
-          destination: owner,
-          owner
-        })
+  transaction.add(
+      atlasSwapInstruction(
+          new PublicKey(poolInfo.ammId),
+          new PublicKey(poolInfo.ammAuthority),
+          wallet.publicKey,
+          wrappedSolAccount ?? newFromTokenAccount,
+          new PublicKey(poolInfo.poolCoinTokenAccount),
+          new PublicKey(poolInfo.poolPcTokenAccount),
+          wrappedSolAccount2 ?? newToTokenAccount,
+          new PublicKey(poolInfo.lp.mintAddress),
+          new PublicKey(poolInfo.feeAccount),
+          new PublicKey(poolInfo.programId),
+          TOKEN_PROGRAM_ID,
+          Math.floor(getBigNumber(amountIn.toWei())),
+          Math.floor(getBigNumber(amountOut.toWei())),
+          undefined
       )
-    }
-    if (wrappedSolAccount2) {
-      transaction.add(
-        closeAccount({
-          source: wrappedSolAccount2,
-          destination: owner,
-          owner
-        })
-      )
-    }
-    const oriBalance = wrappedSolAccount2 ? 
-                (await connection.getBalance(wallet.publicKey)): 
-                (await getTokenBalance(connection, newToTokenAccount.toString()));
+  )
 
-  const tx = await sendTransaction(connection, wallet, transaction, signers)
-
-  let newBalance = 0
-  while(oriBalance >= newBalance)
-  {
-    newBalance = wrappedSolAccount2 ? 
-              (await connection.getBalance(wallet.publicKey)): 
-              (await getTokenBalance(connection, newToTokenAccount.toString()));
+  if (wrappedSolAccount) {
+    transaction.add(
+      closeAccount({
+        source: wrappedSolAccount,
+        destination: owner,
+        owner
+      })
+    )
+  }
+  if (wrappedSolAccount2) {
+    transaction.add(
+      closeAccount({
+        source: wrappedSolAccount2,
+        destination: owner,
+        owner
+      })
+    )
   }
 
-  const amountIncreased = (new TokenAmount(newBalance - oriBalance, to.decimals)).fixed()
+  return await sendTransaction(connection, wallet, transaction, signers)
 
-  return {
-    txid:tx,
-    amountIncreased
-  }
 }

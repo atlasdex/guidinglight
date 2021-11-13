@@ -537,7 +537,7 @@ import { uint8ArrayToHex, hexToUint8Array } from "@/utils/wormhole/array"
 
 import { getTokenBySymbol, TokenInfo, NATIVE_SOL, TOKENS } from '@/utils/tokens'
 import { inputRegex, escapeRegExp } from '@/utils/regex'
-import { getMultipleAccounts, commitment , getOneFilteredTokenAccountsByOwner} from '@/utils/web3'
+import { getMultipleAccounts, commitment , getOneFilteredTokenAccountsByOwner, findAssociatedTokenAddress} from '@/utils/web3'
 import { SERUM_PROGRAM_ID_V3 , FEE_OWNER} from '@/utils/ids'
 import { TokenAmount, gt } from '@/utils/safe-math'
 import { getUnixTs } from '@/utils'
@@ -1750,9 +1750,12 @@ export default Vue.extend({
             })
             const description = `Create Tokens`
             this.$accessor.transaction.sub({ txid, description })
-            getOneFilteredTokenAccountsByOwner(this.$web3, new PublicKey(FEE_OWNER), new PublicKey(fromMint)).then((account)=>{
-              this.feeTokenAccount = account
-            })
+
+             findAssociatedTokenAddress(FEE_OWNER, new PublicKey(fromMint as string)).then((addr)=>{
+               console.log("Expected ", addr.toString())
+               this.feeTokenAccount = addr.toString()
+             })
+
 
           })
           .catch((error: Error) => {
@@ -1782,7 +1785,7 @@ export default Vue.extend({
         let stablePool = STABLE_POOLS.USDT
         let stableEndpoint = SPL_ENDPOINT_ATLAS
         
-        if(this.midCoinStable.symbol === 'USDC')
+        if(this.midCoinStable?.symbol === 'USDC')
         {
           stablePool = MERCURIAL_POOLS.wUSD4Pool
           stableEndpoint = SPL_ENDPOINT_MERCURIAL

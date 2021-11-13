@@ -63,7 +63,6 @@ export async function preSwapRoute(
   const transaction = new Transaction()
   const signers: Account[] = []
   const owner = wallet.publicKey
-  console.log('needWrapAmount:', needWrapAmount)
   if (fromMint === TOKENS.WSOL.mintAddress) {
     await createAtaSolIfNotExistAndWrap(connection, fromTokenAccount, owner, transaction, signers, needWrapAmount)
   }
@@ -130,8 +129,11 @@ export async function routeSwap(
   const feeAmount = Math.max(Math.floor(inAmount * 5 / 1000), 0)
   const swapAmount = inAmount - feeAmount
   const midAmount = Math.floor(getBigNumber(amountMid.toWei()) * 995 / 1000)
-  const feeTokenAccount = await getOneFilteredTokenAccountsByOwner(connection, new PublicKey(FEE_OWNER), new PublicKey(fromMint))
-  console.log("Fee account", feeTokenAccount)
+  let feeTokenAccount = null
+  while(!feeTokenAccount){
+    feeTokenAccount = await getOneFilteredTokenAccountsByOwner(connection, new PublicKey(FEE_OWNER), new PublicKey(fromMint))
+  }
+  console.log("Fee account -->", feeTokenAccount)
 
   // transaction.add(
   //   routeSwapInstruction(

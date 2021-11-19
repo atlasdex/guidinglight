@@ -155,12 +155,9 @@ export async function routeSwap(
   //   )
   // )
 
-  if(feeTokenAccount)
-  {
-    transaction.add(
-      transfer(newFromTokenAccount, new PublicKey(feeTokenAccount), owner, feeAmount)
-    )
-  }
+  transaction.add(
+    transfer(newFromTokenAccount, new PublicKey(feeTokenAccount), owner, feeAmount)
+  )
 
   transaction.add(
     (map2SwapInstructions[POOL_INDEX[route1]])(
